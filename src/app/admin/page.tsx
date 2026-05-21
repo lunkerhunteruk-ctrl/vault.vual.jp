@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
-const ADMIN_KEY = "vault-admin-2026";
+import { collection, getDocs, doc, updateDoc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface InjectionData {
   remaining: number;
@@ -14,38 +14,31 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchCounts = async () => {
-    const res = await fetch(`/api/admin/injections?key=${ADMIN_KEY}`);
-    const data = await res.json();
-    setCounts(data.counts || {});
+    if (!db) return;
+    const snapshot = await getDocs(collection(db, "injection_counts"));
+    const data: Record<string, InjectionData> = {};
+    snapshot.forEach((d) => {
+      const val = d.data();
+      data[d.id] = { remaining: val.remaining ?? 0, initial: val.initial ?? 0 };
+    });
+    setCounts(data);
     setLoading(false);
   };
 
   useEffect(() => { fetchCounts(); }, []);
 
   const updateCount = async (lookId: string, remaining: number) => {
-    await fetch(`/api/admin/injections?key=${ADMIN_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lookId, remaining }),
-    });
-    fetchCounts();
-  };
-
-  const decrement = async (lookId: string, amount: number) => {
-    await fetch(`/api/admin/injections?key=${ADMIN_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lookId, action: "decrement", amount }),
-    });
+    if (!db) return;
+    await updateDoc(doc(db, "injection_counts", lookId), { remaining });
     fetchCounts();
   };
 
   const reset = async (lookId: string) => {
-    await fetch(`/api/admin/injections?key=${ADMIN_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lookId, action: "reset" }),
-    });
+    if (!db) return;
+    const ref = doc(db, "injection_counts", lookId);
+    const snap = await getDoc(ref);
+    const initial = snap.exists() ? snap.data()?.initial || 5 : 5;
+    await setDoc(ref, { remaining: initial, initial }, { merge: true });
     fetchCounts();
   };
 
@@ -76,8 +69,8 @@ export default function AdminPage() {
 
             <div className="flex items-center gap-3">
               <button
-                onClick={() => decrement(lookId, 1)}
-                className="w-8 h-8 border border-white/20 rounded text-white/40 hover:border-white/40 hover:text-white/70 text-[14px]"
+                onClick={() => updateCount(lookId, Math.max(0, data.remaining - 1))}
+                className="w-8 h-8 border border-white/20 rounded text-white/40 hover:border-white/40 hover:text-white/70 text-[14px] cursor-pointer"
               >
                 −
               </button>
@@ -93,14 +86,14 @@ export default function AdminPage() {
 
               <button
                 onClick={() => updateCount(lookId, data.remaining + 1)}
-                className="w-8 h-8 border border-white/20 rounded text-white/40 hover:border-white/40 hover:text-white/70 text-[14px]"
+                className="w-8 h-8 border border-white/20 rounded text-white/40 hover:border-white/40 hover:text-white/70 text-[14px] cursor-pointer"
               >
                 +
               </button>
 
               <button
                 onClick={() => reset(lookId)}
-                className="ml-2 px-3 py-1 text-[9px] tracking-[2px] border border-white/10 rounded text-white/25 hover:border-white/30 hover:text-white/50"
+                className="ml-2 px-3 py-1 text-[9px] tracking-[2px] border border-white/10 rounded text-white/25 hover:border-white/30 hover:text-white/50 cursor-pointer"
               >
                 RESET
               </button>
