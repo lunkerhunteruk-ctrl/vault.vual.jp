@@ -313,11 +313,20 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
               <>
                 {/* Scene injection count */}
                 <div className="text-center">
-                  <span className={`text-[9px] tracking-[2px] font-light ${sceneCorrupted ? "text-red-500/50" : "text-white/20"}`}>
-                    {sceneCorrupted
-                      ? "SCENE CORRUPTED — NO INJECTIONS AVAILABLE"
-                      : `CRITICAL OVERLOAD: ${sceneRemaining ?? "..."} INJECTIONS REMAINING`}
-                  </span>
+                  {sceneCorrupted ? (
+                    <span className="text-[9px] tracking-[2px] font-light text-red-500/50">
+                      SCENE CORRUPTED — NO INJECTIONS AVAILABLE
+                    </span>
+                  ) : (
+                    <div className="flex items-center justify-center gap-3">
+                      <span className="text-[9px] tracking-[2px] font-light text-white/20">
+                        INJECTIONS REMAINING
+                      </span>
+                      <span className="text-[24px] font-light tabular-nums" style={{ color: "var(--vault-cyan)", opacity: 0.6 }}>
+                        {sceneRemaining ?? "—"}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Height selector */}
