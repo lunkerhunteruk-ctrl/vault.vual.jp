@@ -143,6 +143,21 @@ function addEdgeBurn(ctx: CanvasRenderingContext2D, w: number, h: number, intens
   ctx.globalCompositeOperation = 'source-over';
 }
 
+function addGrain(ctx: CanvasRenderingContext2D, w: number, h: number, intensity: number) {
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+  const strength = intensity * 255;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const noise = (Math.random() - 0.5) * strength;
+    data[i] += noise;
+    data[i + 1] += noise;
+    data[i + 2] += noise;
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+}
+
 /**
  * Apply random film effects to a base64 image.
  * Returns a new base64 data URL with effects applied.
@@ -173,6 +188,9 @@ export function applyFilmEffects(dataUrl: string): Promise<string> {
         const burnIntensity = [0, 0.6, 1.0, 1.6][leakLevel];
         addEdgeBurn(ctx, w, h, burnIntensity);
       }
+
+      // Grain — always Mid (0.08)
+      addGrain(ctx, w, h, 0.08);
 
       resolve(canvas.toDataURL('image/jpeg', 0.92));
     };
