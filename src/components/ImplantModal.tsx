@@ -132,10 +132,22 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
 
     if (!resultUrl) return;
     try {
-      const res = await fetch(resultUrl);
-      const blob = await res.blob();
-      const fileName = `vault-implant-${Date.now()}.jpg`;
+      const fileName = `vault-inject-${Date.now()}.jpg`;
       const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+
+      // Convert base64 data URL to blob
+      let blob: Blob;
+      if (resultUrl.startsWith("data:")) {
+        const [header, b64] = resultUrl.split(",");
+        const mime = header.match(/:(.*?);/)?.[1] || "image/jpeg";
+        const bin = atob(b64);
+        const arr = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        blob = new Blob([arr], { type: mime });
+      } else {
+        const res = await fetch(resultUrl);
+        blob = await res.blob();
+      }
 
       if (isMobile && navigator.share && navigator.canShare?.({ files: [new File([blob], fileName, { type: "image/jpeg" })] })) {
         await navigator.share({ files: [new File([blob], fileName, { type: "image/jpeg" })] });
