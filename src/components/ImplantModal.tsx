@@ -8,6 +8,7 @@ import { AuthModal } from "./AuthModal";
 import { CreditSheet } from "./CreditSheet";
 import { t } from "@/lib/i18n";
 import { applyFilmEffects } from "@/lib/film-effects";
+import { ShuffleText } from "./ShuffleText";
 import { decrementInjection, lookFileToId, getRemainingInjections } from "@/lib/injection-count";
 
 interface ImplantModalProps {
@@ -435,20 +436,36 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
                       THIS SCENE HAS REACHED CAPACITY
                     </p>
                   </div>
-                ) : (
+                ) : userPhoto ? (
+                  /* User photo: red WARNING button with shuffle */
                   <button
                     onClick={handleImplant}
-                    disabled={!selectedEntity && !userPhoto}
+                    className="w-full py-4 inject-warning-pulse transition-all duration-300"
+                    style={{
+                      background: "linear-gradient(135deg, #cc2020 0%, #991010 100%)",
+                    }}
+                  >
+                    <ShuffleText
+                      lines={["WARNING: READY TO INJECT YOUR DNA"]}
+                      startDelay={0}
+                      shuffleDuration={600}
+                      stagger={25}
+                      glowColor="#ff4444"
+                      fontSize="12px"
+                      letterSpacing="4px"
+                    />
+                  </button>
+                ) : (
+                  /* Entity selected or nothing: cyan INJECT button */
+                  <button
+                    onClick={handleImplant}
+                    disabled={!selectedEntity}
                     className="w-full py-4 text-[13px] tracking-[6px] font-light transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed"
                     style={{
-                      background:
-                        selectedEntity || userPhoto
-                          ? "linear-gradient(135deg, var(--vault-cyan) 0%, #0088aa 100%)"
-                          : "rgba(255,255,255,0.05)",
-                      color:
-                        selectedEntity || userPhoto
-                          ? "#000"
-                          : "rgba(255,255,255,0.2)",
+                      background: selectedEntity
+                        ? "linear-gradient(135deg, var(--vault-cyan) 0%, #0088aa 100%)"
+                        : "rgba(255,255,255,0.05)",
+                      color: selectedEntity ? "#000" : "rgba(255,255,255,0.2)",
                     }}
                   >
                     INJECT
@@ -534,6 +551,13 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
           }
           .inject-flicker {
             animation: flicker 1.5s infinite;
+          }
+          @keyframes warning-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+          }
+          .inject-warning-pulse {
+            animation: warning-pulse 2s ease-in-out infinite;
           }
         `}</style>
       </div>
