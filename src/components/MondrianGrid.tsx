@@ -1,10 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef } from "react";
 import Image from "next/image";
 import { VaultMedia } from "@/data/types";
 import { HlsVideo } from "./HlsVideo";
-import { getBatchRemainingInjections, lookFileToId } from "@/lib/injection-count";
 
 interface PlacedCell {
   colStart: number;
@@ -122,16 +121,6 @@ interface MondrianGridProps {
 
 export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
-  const [remaining, setRemaining] = useState<Record<string, number>>({});
-
-  // Fetch real injection counts from Firestore
-  useEffect(() => {
-    const imageItems = media.filter((m) => m.type === "image");
-    const lookIds = imageItems.map((m) => lookFileToId(m.file));
-    if (lookIds.length > 0) {
-      getBatchRemainingInjections(lookIds).then(setRemaining);
-    }
-  }, [media]);
 
   const hasVideo = media.some((m) => m.type === "video");
   const imageCount = media.filter((m) => m.type === "image").length;
@@ -163,7 +152,6 @@ export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGrid
       {media.map((item, i) => {
         const p = placements[i % placements.length];
         const isVideo = item.type === "video";
-        const lookId = !isVideo ? lookFileToId(item.file) : "";
 
         return (
           <div key={i} style={{
@@ -204,15 +192,6 @@ export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGrid
                 </>
               )}
             </div>
-            {!isVideo && (
-              <div className="py-1.5 px-1">
-                <span className="text-[8px] sm:text-[9px] tracking-[2px] text-white/20 font-light">
-                  {(remaining[lookId] ?? 1) > 0
-                    ? `CRITICAL OVERLOAD: ${remaining[lookId] ?? "..."} INJECTIONS REMAINING`
-                    : "SCENE CORRUPTED — NO INJECTIONS AVAILABLE"}
-                </span>
-              </div>
-            )}
           </div>
         );
       })}
