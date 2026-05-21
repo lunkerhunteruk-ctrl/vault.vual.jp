@@ -1,5 +1,5 @@
 import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
 const googleProvider = new GoogleAuthProvider();
@@ -9,6 +9,8 @@ export interface VaultUser {
   email: string;
   displayName: string;
   photoURL?: string;
+  paidCredits: number;
+  freeUsed: number;
   createdAt: Date;
 }
 
@@ -28,6 +30,8 @@ async function upsertUser(firebaseUser: import('firebase/auth').User): Promise<V
       email: data.email || firebaseUser.email || '',
       displayName: data.displayName || firebaseUser.displayName || '',
       photoURL: data.photoURL || firebaseUser.photoURL || undefined,
+      paidCredits: data.paidCredits || 0,
+      freeUsed: data.freeUsed || 0,
       createdAt: data.createdAt?.toDate?.() || new Date(),
     };
   }
@@ -36,6 +40,8 @@ async function upsertUser(firebaseUser: import('firebase/auth').User): Promise<V
     email: firebaseUser.email || '',
     displayName: firebaseUser.displayName || '',
     photoURL: firebaseUser.photoURL || undefined,
+    paidCredits: 0,
+    freeUsed: 0,
     createdAt: new Date(),
   };
 
@@ -60,6 +66,12 @@ export async function handleGoogleRedirectResult(): Promise<VaultUser | null> {
   const result = await getRedirectResult(auth);
   if (!result) return null;
   return upsertUser(result.user);
+}
+
+export async function syncCreditsToFirestore(userId: string, paidCredits: number, freeUsed: number): Promise<void> {
+  if (!db) return;
+  const userRef = doc(db, 'vault_users', userId);
+  await updateDoc(userRef, { paidCredits, freeUsed, updatedAt: new Date() });
 }
 
 export async function signOutVault(): Promise<void> {

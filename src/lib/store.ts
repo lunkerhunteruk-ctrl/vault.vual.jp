@@ -1,32 +1,43 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { VaultUser } from './auth';
+import { syncCreditsToFirestore } from './auth';
 
 const GUEST_FREE = 1;
 const MEMBER_FREE = 5;
 
 interface VaultStore {
-  // Auth
   user: VaultUser | null;
   setUser: (user: VaultUser | null) => void;
 
-  // Generation tracking
-  freeUsed: number;        // free generations used
-  paidCredits: number;     // purchased credits remaining
+  freeUsed: number;
+  paidCredits: number;
   incrementGeneration: () => void;
   addPaidCredits: (amount: number) => void;
 
-  // Derived
   canGenerate: () => boolean;
   freeRemaining: () => number;
   totalRemaining: () => number;
+}
+
+function syncToFirestore(state: { user: VaultUser | null; paidCredits: number; freeUsed: number }) {
+  if (state.user) {
+    syncCreditsToFirestore(state.user.id, state.paidCredits, state.freeUsed).catch(() => {});
+  }
 }
 
 export const useVaultStore = create<VaultStore>()(
   persist(
     (set, get) => ({
       user: null,
-      setUser: (user) => set({ user }),
+      setUser: (user) => {
+        if (user) {
+          // Load credits from Firestore on login
+          set({ user, paidCredits: user.paidCredits, freeUsed: user.freeUsed });
+        } else {
+          set({ user: null });
+        }
+      },
 
       freeUsed: 0,
       paidCredits: 0,
@@ -36,15 +47,22 @@ export const useVaultStore = create<VaultStore>()(
         const freeMax = user ? MEMBER_FREE : GUEST_FREE;
 
         if (freeUsed < freeMax) {
-          // Use free credit first
-          set({ freeUsed: freeUsed + 1 });
+          const newState = { freeUsed: freeUsed + 1 };
+          set(newState);
+          syncToFirestore({ user, paidCredits, freeUsed: newState.freeUsed });
         } else if (paidCredits > 0) {
-          // Then paid credits
-          set({ paidCredits: paidCredits - 1 });
+          const newState = { paidCredits: paidCredits - 1 };
+          set(newState);
+          syncToFirestore({ user, paidCredits: newState.paidCredits, freeUsed });
         }
       },
 
-      addPaidCredits: (amount) => set((s) => ({ paidCredits: s.paidCredits + amount })),
+      addPaidCredits: (amount) => {
+        const { user, freeUsed, paidCredits } = get();
+        const newPaid = paidCredits + amount;
+        set({ paidCredits: newPaid });
+        syncToFirestore({ user, paidCredits: newPaid, freeUsed });
+      },
 
       canGenerate: () => {
         const { user, freeUsed, paidCredits } = get();
