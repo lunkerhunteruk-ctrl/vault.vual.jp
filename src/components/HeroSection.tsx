@@ -10,19 +10,22 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
   const [phase, setPhase] = useState<"tagline" | "shuffle" | "cta" | "done">("tagline");
 
   useEffect(() => {
-    // Phase 1: Show tagline for 2s
+    let userScrolled = false;
+    const onScroll = () => { userScrolled = true; };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
     const t1 = setTimeout(() => setPhase("shuffle"), 2000);
-    // Phase 2: Shuffle transition for 0.6s
     const t2 = setTimeout(() => setPhase("cta"), 2600);
-    // Phase 3: Show CTA for 1.5s, then auto-scroll
     const t3 = setTimeout(() => {
       setPhase("done");
-      if (firstThemeId) {
+      // Only auto-scroll if user hasn't scrolled manually
+      if (!userScrolled && firstThemeId) {
         document.getElementById(firstThemeId)?.scrollIntoView({ behavior: "smooth" });
       }
     }, 4100);
 
     return () => {
+      window.removeEventListener("scroll", onScroll);
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
