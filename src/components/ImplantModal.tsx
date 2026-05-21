@@ -445,22 +445,24 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
                       background: "linear-gradient(135deg, #cc2020 0%, #991010 100%)",
                     }}
                   >
-                    <ShuffleText
-                      lines={["WARNING: READY TO INJECT YOUR DNA"]}
-                      startDelay={0}
-                      shuffleDuration={600}
-                      stagger={25}
-                      glowColor="#ff4444"
-                      fontSize="12px"
-                      letterSpacing="4px"
-                    />
+                    <div className="pointer-events-none">
+                      <ShuffleText
+                        lines={["WARNING: READY TO INJECT YOUR DNA"]}
+                        startDelay={0}
+                        shuffleDuration={600}
+                        stagger={25}
+                        glowColor="#ff4444"
+                        fontSize="12px"
+                        letterSpacing="4px"
+                      />
+                    </div>
                   </button>
                 ) : (
                   /* Entity selected or nothing: cyan INJECT button */
                   <button
                     onClick={handleImplant}
                     disabled={!selectedEntity}
-                    className="w-full py-4 text-[13px] tracking-[6px] font-light transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed"
+                    className="w-full py-4 text-[13px] tracking-[6px] font-light transition-all duration-300 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                     style={{
                       background: selectedEntity
                         ? "linear-gradient(135deg, var(--vault-cyan) 0%, #0088aa 100%)"
