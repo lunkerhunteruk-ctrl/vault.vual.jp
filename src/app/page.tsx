@@ -16,6 +16,7 @@ export default function VaultHome() {
     (VaultMedia & { locationId: string }) | null
   >(null);
   const [selectedCity, setSelectedCity] = useState<string>("");
+  const [selectedTotalLooks, setSelectedTotalLooks] = useState<number>(12);
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const setUser = useVaultStore((s) => s.setUser);
 
@@ -66,7 +67,11 @@ export default function VaultHome() {
         <ThemeSection
           key={theme.id}
           theme={theme}
-          onImageClick={(img) => { setSelectedImage(img); setSelectedCity(theme.city); }}
+          onImageClick={(img) => {
+            setSelectedImage(img);
+            setSelectedCity(theme.city);
+            setSelectedTotalLooks(theme.locations.flatMap(l => l.media).filter(m => m.type === "image").length);
+          }}
           onVideoClick={setVideoSrc}
         />
       ))}
@@ -79,6 +84,7 @@ export default function VaultHome() {
         image={selectedImage}
         entities={sampleEntities}
         themeCity={selectedCity}
+        totalLooks={selectedTotalLooks}
         onClose={() => setSelectedImage(null)}
       />
 

@@ -14,6 +14,7 @@ interface ImplantModalProps {
   image: (VaultMedia & { locationId: string }) | null;
   entities: VaultEntity[];
   themeCity?: string;
+  totalLooks?: number;
   onClose: () => void;
 }
 
@@ -26,7 +27,7 @@ const INJECT_STEPS = [
   "SEALING OUTPUT",
 ];
 
-export function ImplantModal({ image, entities, themeCity, onClose }: ImplantModalProps) {
+export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }: ImplantModalProps) {
   const [state, setState] = useState<ModalState>("select");
   const [selectedEntity, setSelectedEntity] = useState<VaultEntity | null>(null);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
@@ -117,9 +118,10 @@ export function ImplantModal({ image, entities, themeCity, onClose }: ImplantMod
         const city = themeCity || "VAULT";
 
         // Apply random film effects (flare + leak + edge print)
+        const total = totalLooks || 12;
         const withEffects = await applyFilmEffects(data.resultImage, {
           title: `${city}  ${filmDate}`,
-          lot: `${lookNum}/12`,
+          lot: `INJ.${lookNum.padStart(3, "0")}/${String(total).padStart(3, "0")}`,
         });
         setState("result");
         setResultUrl(withEffects);
