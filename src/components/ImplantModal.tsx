@@ -34,6 +34,7 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
   const [showAuth, setShowAuth] = useState(false);
 
   const [showCredits, setShowCredits] = useState(false);
+  const [height, setHeight] = useState(170);
   const [previewEntity, setPreviewEntity] = useState<VaultEntity | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -94,6 +95,7 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
         body: JSON.stringify({
           entityImage,
           lookFile: image.file,
+          height,
         }),
       });
 
@@ -282,6 +284,27 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
                         ? t("implant.noRemaining")
                         : t("implant.signUpMore")}
                   </span>
+                </div>
+
+                {/* Height selector */}
+                <div>
+                  <p className="text-[10px] tracking-[4px] text-white/40 font-light mb-3">
+                    HEIGHT
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min={150}
+                      max={190}
+                      step={1}
+                      value={height}
+                      onChange={(e) => setHeight(parseInt(e.target.value))}
+                      className="flex-1 h-[2px] appearance-none bg-white/10 rounded-full accent-[var(--vault-cyan)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--vault-cyan)]"
+                    />
+                    <span className="text-[13px] tracking-[2px] text-white/60 font-light w-14 text-right">
+                      {height}cm
+                    </span>
+                  </div>
                 </div>
 
                 {/* Entity selection */}

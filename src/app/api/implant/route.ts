@@ -36,11 +36,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { entityImage, lookFile } = body;
+    const { entityImage, lookFile, height } = body;
 
     if (!entityImage || !lookFile) {
       return NextResponse.json({ error: 'entityImage and lookFile are required' }, { status: 400 });
     }
+
+    const modelHeight = height || 170;
 
     // Extract look path: "https://...r2.dev/vault/collections/20-05-2026/look2.jpg" → "20-05-2026/look2"
     const lookMatch = lookFile.match(/(\d{2}-\d{2}-\d{4}\/look\d+)\.jpg/);
@@ -54,7 +56,8 @@ export async function POST(request: NextRequest) {
     if (!promptBuf) {
       return NextResponse.json({ success: false, error: `Recipe not found: ${recipeBase}` }, { status: 404 });
     }
-    const prompt = promptBuf.toString('utf-8');
+    const basePrompt = promptBuf.toString('utf-8');
+    const prompt = `The model is ${modelHeight}cm tall with a slim build.\n${basePrompt}`;
 
     // Entity face image first
     const imageParts: any[] = [];
