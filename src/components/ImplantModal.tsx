@@ -311,6 +311,15 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
           <div className="p-6 space-y-6" onClick={() => setPreviewEntity(null)}>
             {state === "select" && (
               <>
+                {/* Scene injection count */}
+                <div className="text-center">
+                  <span className={`text-[9px] tracking-[2px] font-light ${sceneCorrupted ? "text-red-500/50" : "text-white/20"}`}>
+                    {sceneCorrupted
+                      ? "SCENE CORRUPTED — NO INJECTIONS AVAILABLE"
+                      : `CRITICAL OVERLOAD: ${sceneRemaining ?? "..."} INJECTIONS REMAINING`}
+                  </span>
+                </div>
+
                 {/* Height selector */}
                 <div>
                   <p className="text-[10px] tracking-[4px] text-white/40 font-light mb-3">
