@@ -1,40 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { ShuffleText } from "./ShuffleText";
 
 interface HeroSectionProps {
   firstThemeId?: string;
 }
 
 export function HeroSection({ firstThemeId }: HeroSectionProps) {
-  const [phase, setPhase] = useState<"tagline" | "shuffle" | "cta" | "done">("tagline");
+  const scrolledRef = useRef(false);
 
   useEffect(() => {
-    let userScrolled = false;
-    const onScroll = () => { userScrolled = true; };
+    const onScroll = () => { scrolledRef.current = true; };
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    const t1 = setTimeout(() => setPhase("shuffle"), 2000);
-    const t2 = setTimeout(() => setPhase("cta"), 2600);
-    const t3 = setTimeout(() => {
-      setPhase("done");
-      // Only auto-scroll if user hasn't scrolled manually
-      if (!userScrolled && firstThemeId) {
+    // Auto-scroll after animation completes (~3.5s)
+    const t = setTimeout(() => {
+      if (!scrolledRef.current && firstThemeId) {
         document.getElementById(firstThemeId)?.scrollIntoView({ behavior: "smooth" });
       }
-    }, 4100);
+    }, 4000);
 
     return () => {
       window.removeEventListener("scroll", onScroll);
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
+      clearTimeout(t);
     };
   }, [firstThemeId]);
-
-  const isTagline = phase === "tagline" || phase === "shuffle";
-  const isShuffle = phase === "shuffle";
-  const isCta = phase === "cta";
 
   return (
     <section className="h-screen flex flex-col items-center justify-center relative">
@@ -43,33 +34,15 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
           VAULT
         </p>
 
-        <div className="relative h-[80px] md:h-[100px] w-full flex items-center justify-center overflow-hidden">
-          {/* OWN NOTHING. WEAR EVERYTHING. */}
-          <h1
-            className="text-[16px] sm:text-[22px] md:text-[32px] tracking-[5px] sm:tracking-[8px] md:tracking-[14px] font-light leading-relaxed absolute inset-x-0 transition-all duration-500"
-            style={{
-              opacity: isTagline && !isShuffle ? 0.8 : 0,
-              transform: isShuffle ? "translateY(-30px)" : "translateY(0)",
-              filter: isShuffle ? "blur(8px)" : "none",
-            }}
-          >
-            OWN NOTHING.
-            <br />
-            WEAR EVERYTHING.
-          </h1>
-
-          {/* STEP INTO THE FRAME */}
-          <p
-            className="text-[14px] sm:text-[20px] md:text-[28px] tracking-[5px] sm:tracking-[8px] md:tracking-[14px] font-light text-white/60 absolute inset-x-0 transition-all duration-500"
-            style={{
-              opacity: isCta ? 1 : 0,
-              transform: isCta ? "translateY(0)" : "translateY(30px)",
-              filter: isCta ? "none" : "blur(8px)",
-            }}
-          >
-            STEP INTO THE FRAME
-          </p>
-        </div>
+        <ShuffleText
+          lines={["OWN NOTHING.", "INJECT YOUR DNA."]}
+          startDelay={500}
+          shuffleDuration={500}
+          stagger={35}
+          glowColor="#00d4ff"
+          fontSize="clamp(16px, 4vw, 32px)"
+          letterSpacing="clamp(5px, 1.5vw, 14px)"
+        />
 
         <div className="mx-auto mt-8 w-[1px] h-8 bg-white/10" />
         <p className="mt-4 text-[9px] tracking-[5px] text-white/15 font-light">
