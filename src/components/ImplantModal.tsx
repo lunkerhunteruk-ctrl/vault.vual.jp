@@ -277,7 +277,7 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
           </div>
 
           {/* Controls */}
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-6" onClick={() => setPreviewEntity(null)}>
             {state === "select" && (
               <>
                 {/* Generation counter */}
@@ -321,20 +321,20 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
                     {entities.map((entity) => (
                       <button
                         key={entity.id}
-                        onClick={() => {
-                          setSelectedEntity(entity);
-                          setUserPhoto(null);
-                          setPreviewEntity(null);
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (previewEntity?.id === entity.id) {
+                            // Second tap on same entity = select it
+                            setSelectedEntity(entity);
+                            setUserPhoto(null);
+                            setPreviewEntity(null);
+                          } else {
+                            // First tap = preview
+                            setPreviewEntity(entity);
+                          }
                         }}
                         onMouseEnter={() => setPreviewEntity(entity)}
                         onMouseLeave={() => setPreviewEntity(null)}
-                        onTouchStart={() => {
-                          longPressTimer.current = setTimeout(() => setPreviewEntity(entity), 300);
-                        }}
-                        onTouchEnd={() => {
-                          if (longPressTimer.current) clearTimeout(longPressTimer.current);
-                          setPreviewEntity(null);
-                        }}
                         className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 transition-colors"
                         style={{
                           borderColor:
