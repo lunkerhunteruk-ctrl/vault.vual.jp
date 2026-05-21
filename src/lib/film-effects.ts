@@ -189,6 +189,11 @@ export function applyFilmEffects(dataUrl: string): Promise<string> {
         addEdgeBurn(ctx, w, h, burnIntensity);
       }
 
+      // Desaturation — always 0.85
+      ctx.filter = 'saturate(0.85)';
+      ctx.drawImage(canvas, 0, 0);
+      ctx.filter = 'none';
+
       // Grain — always Mid (0.08)
       addGrain(ctx, w, h, 0.08);
 
