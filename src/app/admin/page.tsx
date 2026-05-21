@@ -78,7 +78,7 @@ export default function AdminPage() {
               <div className="flex items-center gap-1">
                 <span className="text-[9px] tracking-[1px] text-white/25 mr-1">INIT</span>
                 <button
-                  onClick={() => updateInitial(lookId, Math.max(1, data.initial - 1))}
+                  onClick={() => updateInitial(lookId, Math.max(0, data.initial - 1))}
                   className="w-6 h-6 border border-white/10 rounded text-white/25 hover:border-white/30 hover:text-white/50 text-[11px] cursor-pointer"
                 >
                   −
