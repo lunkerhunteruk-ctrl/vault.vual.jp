@@ -173,7 +173,7 @@ function addGrain(ctx: CanvasRenderingContext2D, w: number, h: number, intensity
 }
 
 function addFilmEdgePrint(ctx: CanvasRenderingContext2D, w: number, h: number, title: string, lot: string) {
-  const fontSize = Math.max(10, Math.floor(h * 0.013));
+  const fontSize = Math.max(12, Math.floor(h * 0.02));
   const margin = Math.floor(w * 0.02);
 
   ctx.save();
