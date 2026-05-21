@@ -15,6 +15,7 @@ export default function VaultHome() {
   const [selectedImage, setSelectedImage] = useState<
     (VaultMedia & { locationId: string }) | null
   >(null);
+  const [selectedCity, setSelectedCity] = useState<string>("");
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const setUser = useVaultStore((s) => s.setUser);
 
@@ -65,7 +66,7 @@ export default function VaultHome() {
         <ThemeSection
           key={theme.id}
           theme={theme}
-          onImageClick={setSelectedImage}
+          onImageClick={(img) => { setSelectedImage(img); setSelectedCity(theme.city); }}
           onVideoClick={setVideoSrc}
         />
       ))}
@@ -77,6 +78,7 @@ export default function VaultHome() {
       <ImplantModal
         image={selectedImage}
         entities={sampleEntities}
+        themeCity={selectedCity}
         onClose={() => setSelectedImage(null)}
       />
 

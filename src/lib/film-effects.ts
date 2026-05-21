@@ -172,11 +172,43 @@ function addGrain(ctx: CanvasRenderingContext2D, w: number, h: number, intensity
   ctx.putImageData(imageData, 0, 0);
 }
 
+function addFilmEdgePrint(ctx: CanvasRenderingContext2D, w: number, h: number, title: string, lot: string) {
+  const fontSize = Math.max(10, Math.floor(h * 0.013));
+  const margin = Math.floor(w * 0.02);
+
+  ctx.save();
+
+  // Position: right edge, rotated 90° (reading bottom to top)
+  ctx.translate(w - margin, h - margin);
+  ctx.rotate(-Math.PI / 2);
+
+  // Film edge print style: orange, slightly transparent, soft
+  ctx.font = `${fontSize}px 'Courier New', 'SF Mono', monospace`;
+  ctx.textBaseline = 'top';
+
+  // Slight blur for film print look
+  ctx.filter = 'blur(0.5px)';
+
+  // Main text
+  const text = `${title}   ${lot}   PORTRA 800`;
+  ctx.fillStyle = 'rgba(215, 140, 50, 0.55)';
+  ctx.fillText(text, 0, 0);
+
+  // Second pass slightly offset for glow/bleed effect
+  ctx.fillStyle = 'rgba(215, 140, 50, 0.2)';
+  ctx.fillText(text, 0.5, 0.5);
+
+  ctx.restore();
+}
+
 /**
  * Apply random film effects to a base64 image.
  * Returns a new base64 data URL with effects applied.
  */
-export function applyFilmEffects(dataUrl: string): Promise<string> {
+export function applyFilmEffects(
+  dataUrl: string,
+  meta?: { title?: string; lot?: string }
+): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -223,6 +255,11 @@ export function applyFilmEffects(dataUrl: string): Promise<string> {
       ctx.filter = 'none';
 
       // Grain — OFF (Gemini handles grain via pushed Portra 800 prompt)
+
+      // Film edge print (title + lot number)
+      if (meta?.title || meta?.lot) {
+        addFilmEdgePrint(ctx, w, h, meta.title || '', meta.lot || '');
+      }
 
       resolve(canvas.toDataURL('image/jpeg', 0.92));
     };

@@ -13,6 +13,7 @@ import { decrementInjection, lookFileToId } from "@/lib/injection-count";
 interface ImplantModalProps {
   image: (VaultMedia & { locationId: string }) | null;
   entities: VaultEntity[];
+  themeCity?: string;
   onClose: () => void;
 }
 
@@ -25,7 +26,7 @@ const INJECT_STEPS = [
   "SEALING OUTPUT",
 ];
 
-export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
+export function ImplantModal({ image, entities, themeCity, onClose }: ImplantModalProps) {
   const [state, setState] = useState<ModalState>("select");
   const [selectedEntity, setSelectedEntity] = useState<VaultEntity | null>(null);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
@@ -107,8 +108,19 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
       await new Promise((r) => setTimeout(r, 500));
 
       if (data.success && data.resultImage) {
-        // Apply random film effects (flare + leak)
-        const withEffects = await applyFilmEffects(data.resultImage);
+        // Extract lot info from file path
+        // e.g. "https://...20-05-2026/look3.jpg" → date "5.20", lot "3/12"
+        const dateMatch = image.file.match(/(\d{2})-(\d{2})-(\d{4})/);
+        const lookMatch = image.file.match(/look(\d+)\.jpg/);
+        const filmDate = dateMatch ? `${parseInt(dateMatch[2])}.${parseInt(dateMatch[1])}` : "";
+        const lookNum = lookMatch ? lookMatch[1] : "1";
+        const city = themeCity || "VAULT";
+
+        // Apply random film effects (flare + leak + edge print)
+        const withEffects = await applyFilmEffects(data.resultImage, {
+          title: `${city}  ${filmDate}`,
+          lot: `${lookNum}/12`,
+        });
         setState("result");
         setResultUrl(withEffects);
         incrementGeneration();
