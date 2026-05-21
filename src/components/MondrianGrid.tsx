@@ -12,6 +12,19 @@ interface PlacedCell {
   rowEnd: number;
 }
 
+// 4 images (all 3:4). 12×12 grid, no overlap, no gaps.
+// 1 large + 3 small, or 2 large + 2 small
+function layout4Images(): PlacedCell[] {
+  return [
+    { colStart: 1, colEnd: 7, rowStart: 1, rowEnd: 7 },     // A 6×6 large
+    { colStart: 7, colEnd: 13, rowStart: 1, rowEnd: 7 },    // B 6×6 large
+    { colStart: 1, colEnd: 7, rowStart: 7, rowEnd: 13 },    // C 6×6 large
+    { colStart: 7, colEnd: 13, rowStart: 7, rowEnd: 13 },   // D 6×6 large
+  ];
+  // r1-6:  A(1-6) + B(7-12) = 12 ✓
+  // r7-12: C(1-6) + D(7-12) = 12 ✓
+}
+
 // 8 images (all 3:4). 12×15 grid, no overlap, no gaps.
 function layout8Images(): PlacedCell[] {
   return [
