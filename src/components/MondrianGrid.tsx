@@ -55,6 +55,42 @@ function videoPlus8Layout(): PlacedCell[] {
   ];
 }
 
+// Video (9:16) + 12 images. No overlap, no gaps.
+function videoPlus12Layout(): PlacedCell[] {
+  return [
+    // VIDEO: 6×8 (9:16)
+    { colStart: 1, colEnd: 7, rowStart: 1, rowEnd: 9 },
+    // i1-i4: 4 small right of video
+    { colStart: 7, colEnd: 10, rowStart: 1, rowEnd: 4 },
+    { colStart: 10, colEnd: 13, rowStart: 1, rowEnd: 4 },
+    { colStart: 7, colEnd: 10, rowStart: 4, rowEnd: 7 },
+    { colStart: 10, colEnd: 13, rowStart: 4, rowEnd: 7 },
+    // i5: 6×6 large right
+    { colStart: 7, colEnd: 13, rowStart: 7, rowEnd: 13 },
+    // i6-i7: 2 small below video
+    { colStart: 1, colEnd: 4, rowStart: 9, rowEnd: 12 },
+    { colStart: 4, colEnd: 7, rowStart: 9, rowEnd: 12 },
+    // i8: 6×6 large left
+    { colStart: 1, colEnd: 7, rowStart: 12, rowEnd: 18 },
+    // i9-i10: 2 small right
+    { colStart: 7, colEnd: 10, rowStart: 13, rowEnd: 16 },
+    { colStart: 10, colEnd: 13, rowStart: 13, rowEnd: 16 },
+    // i11: 6×6 large right
+    { colStart: 7, colEnd: 13, rowStart: 16, rowEnd: 22 },
+    // i12: 6×6 large left (negative space right)
+    { colStart: 1, colEnd: 7, rowStart: 18, rowEnd: 24 },
+  ];
+  // r1-3:   VID(1-6) + i1(7-9) + i2(10-12)     = 12 ✓
+  // r4-6:   VID(1-6) + i3(7-9) + i4(10-12)     = 12 ✓
+  // r7-8:   VID(1-6) + i5(7-12)                 = 12 ✓
+  // r9-11:  i6(1-3) + i7(4-6) + i5(7-12)        = 12 ✓
+  // r12:    i8(1-6) + i5(7-12)                   = 12 ✓
+  // r13-15: i8(1-6) + i9(7-9) + i10(10-12)      = 12 ✓
+  // r16-17: i8(1-6) + i11(7-12)                  = 12 ✓
+  // r18-21: i12(1-6) + i11(7-12)                 = 12 ✓
+  // r22-23: i12(1-6) only                        = negative space ✓
+}
+
 function rowSpanForAspect(aspect: string, colSpan: number): number {
   const [w, h] = aspect.split(":").map(Number);
   return Math.round(colSpan * (3 * h) / (4 * w));
@@ -90,10 +126,14 @@ export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGrid
   const imageCount = media.filter((m) => m.type === "image").length;
 
   let placements: PlacedCell[];
-  if (hasVideo && imageCount === 8) {
+  if (hasVideo && imageCount === 12) {
+    placements = videoPlus12Layout();
+  } else if (hasVideo && imageCount === 8) {
     placements = videoPlus8Layout();
   } else if (!hasVideo && imageCount === 8) {
     placements = layout8Images();
+  } else if (!hasVideo && imageCount === 4) {
+    placements = layout4Images();
   } else {
     placements = layoutFallback(media.map((m) => ({ aspect: m.aspect })));
   }
