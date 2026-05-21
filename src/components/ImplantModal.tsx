@@ -357,12 +357,12 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
                   {/* Entity preview popup */}
                   {previewEntity && (
                     <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 z-10 pointer-events-none">
-                      <div className="w-36 h-36 rounded-xl overflow-hidden border border-white/20 shadow-2xl bg-black">
+                      <div className="w-32 rounded-xl overflow-hidden border border-white/20 shadow-2xl bg-black" style={{ aspectRatio: "3/4" }}>
                         <Image
                           src={previewEntity.referenceUrl}
                           alt={previewEntity.name}
-                          width={144}
-                          height={144}
+                          width={128}
+                          height={171}
                           className="object-cover w-full h-full"
                         />
                       </div>
