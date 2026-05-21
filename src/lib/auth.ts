@@ -68,6 +68,15 @@ export async function handleGoogleRedirectResult(): Promise<VaultUser | null> {
   return upsertUser(result.user);
 }
 
+export async function fetchCreditsFromFirestore(userId: string): Promise<{ paidCredits: number; freeUsed: number } | null> {
+  if (!db) return null;
+  const userRef = doc(db, 'vault_users', userId);
+  const userDoc = await getDoc(userRef);
+  if (!userDoc.exists()) return null;
+  const data = userDoc.data();
+  return { paidCredits: data.paidCredits || 0, freeUsed: data.freeUsed || 0 };
+}
+
 export async function syncCreditsToFirestore(userId: string, paidCredits: number, freeUsed: number): Promise<void> {
   if (!db) return;
   const userRef = doc(db, 'vault_users', userId);

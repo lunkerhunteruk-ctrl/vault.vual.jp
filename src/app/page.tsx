@@ -5,7 +5,7 @@ import { ThemeSection } from "@/components/ThemeSection";
 import { ImplantModal } from "@/components/ImplantModal";
 import { VaultMedia } from "@/data/types";
 import { sampleThemes, sampleEntities } from "@/data/sample";
-import { handleGoogleRedirectResult } from "@/lib/auth";
+import { handleGoogleRedirectResult, fetchCreditsFromFirestore } from "@/lib/auth";
 import { useVaultStore } from "@/lib/store";
 import { UserBadge } from "@/components/UserBadge";
 import { VideoModal } from "@/components/VideoModal";
@@ -19,13 +19,24 @@ export default function VaultHome() {
   const setUser = useVaultStore((s) => s.setUser);
 
   const addPaidCredits = useVaultStore((s) => s.addPaidCredits);
+  const user = useVaultStore((s) => s.user);
+  const syncCredits = useVaultStore((s) => s.syncFromFirestore);
 
   // Handle Google redirect result (mobile sign-in)
   useEffect(() => {
-    handleGoogleRedirectResult().then((user) => {
-      if (user) setUser(user);
+    handleGoogleRedirectResult().then((u) => {
+      if (u) setUser(u);
     });
   }, [setUser]);
+
+  // Sync credits from Firestore on page load (when already logged in)
+  useEffect(() => {
+    if (user?.id) {
+      fetchCreditsFromFirestore(user.id).then((credits) => {
+        if (credits) syncCredits(credits.paidCredits, credits.freeUsed);
+      });
+    }
+  }, [user?.id, syncCredits]);
 
   // Handle credit purchase success
   useEffect(() => {

@@ -14,6 +14,7 @@ interface VaultStore {
   paidCredits: number;
   incrementGeneration: () => void;
   addPaidCredits: (amount: number) => void;
+  syncFromFirestore: (paidCredits: number, freeUsed: number) => void;
 
   canGenerate: () => boolean;
   freeRemaining: () => number;
@@ -61,6 +62,15 @@ export const useVaultStore = create<VaultStore>()(
           set(newState);
           syncToFirestore({ user, paidCredits: newState.paidCredits, freeUsed });
         }
+      },
+
+      syncFromFirestore: (serverPaid, serverFreeUsed) => {
+        // Take the higher value to prevent data loss
+        const local = get();
+        set({
+          paidCredits: Math.max(local.paidCredits, serverPaid),
+          freeUsed: Math.max(local.freeUsed, serverFreeUsed),
+        });
       },
 
       addPaidCredits: (amount) => {
