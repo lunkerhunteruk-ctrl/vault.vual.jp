@@ -17,7 +17,7 @@ function seededInitialCount(lookId: string): number {
     hash |= 0;
   }
   const seed = Math.sin(hash * 9301 + 49297) * 49297;
-  return 5 + Math.floor((seed - Math.floor(seed)) * 8);
+  return 3 + Math.floor((seed - Math.floor(seed)) * 3);
 }
 
 // Get remaining injections for a look
