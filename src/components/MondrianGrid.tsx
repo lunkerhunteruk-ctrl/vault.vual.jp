@@ -182,7 +182,7 @@ export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGrid
                 />
               )}
               {!isVideo && (
-                <div className="absolute inset-0 border border-transparent group-hover:border-[var(--vault-cyan)]/50 transition-all duration-300" />
+                <div className="absolute inset-0 transition-all duration-300 group-hover:[box-shadow:inset_0_0_0_1px_rgba(0,212,255,0.5)]" />
               )}
             </div>
           </div>
