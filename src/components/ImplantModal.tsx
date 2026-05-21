@@ -518,10 +518,10 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
             )}
 
             {state === "result" && (
-              <div className="space-y-3">
+              <div className="flex gap-3">
                 <button
                   onClick={handleExport}
-                  className="w-full py-3 text-[11px] tracking-[4px] font-light border border-[var(--vault-cyan)]/30 hover:border-[var(--vault-cyan)]/60 text-[var(--vault-cyan)] transition-colors cursor-pointer"
+                  className="flex-1 py-3 text-[11px] tracking-[4px] font-light border border-[var(--vault-cyan)]/30 hover:border-[var(--vault-cyan)]/60 text-[var(--vault-cyan)] transition-colors cursor-pointer"
                 >
                   EXPORT
                 </button>
@@ -530,7 +530,7 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
                     setResultUrl(null);
                     setState("select");
                   }}
-                  className="w-full py-3 text-[11px] tracking-[4px] font-light border border-white/10 hover:border-white/30 text-white/30 hover:text-white/50 transition-colors cursor-pointer"
+                  className="flex-1 py-3 text-[11px] tracking-[4px] font-light border border-white/10 hover:border-white/30 text-white/30 hover:text-white/50 transition-colors cursor-pointer"
                 >
                   RE-INJECT
                 </button>
