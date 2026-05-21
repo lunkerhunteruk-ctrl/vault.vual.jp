@@ -9,10 +9,19 @@ interface InjectionData {
   initial: number;
 }
 
+interface UserData {
+  id: string;
+  email: string;
+  displayName: string;
+  paidCredits: number;
+  freeUsed: number;
+}
+
 const ADMIN_KEY = "vual-vault-2026";
 
 export default function AdminPage() {
   const [counts, setCounts] = useState<Record<string, InjectionData>>({});
+  const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
 
@@ -32,10 +41,28 @@ export default function AdminPage() {
       data[d.id] = { remaining: val.remaining ?? 0, initial: val.initial ?? 0 };
     });
     setCounts(data);
-    setLoading(false);
   };
 
-  useEffect(() => { fetchCounts(); }, []);
+  const fetchUsers = async () => {
+    if (!db) return;
+    const snapshot = await getDocs(collection(db, "vault_users"));
+    const data: UserData[] = [];
+    snapshot.forEach((d) => {
+      const val = d.data();
+      data.push({
+        id: d.id,
+        email: val.email || "",
+        displayName: val.displayName || "",
+        paidCredits: val.paidCredits ?? 0,
+        freeUsed: val.freeUsed ?? 0,
+      });
+    });
+    setUsers(data);
+  };
+
+  useEffect(() => {
+    Promise.all([fetchCounts(), fetchUsers()]).then(() => setLoading(false));
+  }, []);
 
   const updateCount = async (lookId: string, remaining: number) => {
     if (!db) return;
@@ -47,6 +74,12 @@ export default function AdminPage() {
     if (!db) return;
     await updateDoc(doc(db, "injection_counts", lookId), { initial });
     fetchCounts();
+  };
+
+  const updateUserCredits = async (userId: string, paidCredits: number) => {
+    if (!db) return;
+    await updateDoc(doc(db, "vault_users", userId), { paidCredits });
+    fetchUsers();
   };
 
   const reset = async (lookId: string) => {
@@ -147,6 +180,71 @@ export default function AdminPage() {
           No injection counts yet. Generate some images first.
         </p>
       )}
+
+      {/* Users */}
+      <h2 className="text-[14px] tracking-[6px] text-white/40 font-light mt-12 mb-6">
+        USERS — CREDITS
+      </h2>
+
+      <div className="space-y-2 max-w-2xl">
+        {users.map((user) => (
+          <div
+            key={user.id}
+            className="flex items-center justify-between p-4 border border-white/10 rounded-lg"
+          >
+            <div>
+              <p className="text-[12px] tracking-[1px] text-white/60 font-light">
+                {user.displayName || user.email}
+              </p>
+              <p className="text-[10px] text-white/25 font-light">
+                {user.email} · free used: {user.freeUsed}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] tracking-[1px] text-white/25 mr-1">PAID</span>
+              <button
+                onClick={() => updateUserCredits(user.id, Math.max(0, user.paidCredits - 10))}
+                className="w-7 h-7 border border-white/15 rounded text-white/30 hover:border-white/30 hover:text-white/60 text-[10px] cursor-pointer"
+              >
+                -10
+              </button>
+              <button
+                onClick={() => updateUserCredits(user.id, Math.max(0, user.paidCredits - 1))}
+                className="w-6 h-6 border border-white/15 rounded text-white/30 hover:border-white/30 hover:text-white/60 text-[11px] cursor-pointer"
+              >
+                −
+              </button>
+
+              <span
+                className="text-[22px] font-light tabular-nums w-14 text-center"
+                style={{ color: user.paidCredits > 0 ? "var(--vault-cyan)" : "rgba(255,255,255,0.2)" }}
+              >
+                {user.paidCredits}
+              </span>
+
+              <button
+                onClick={() => updateUserCredits(user.id, user.paidCredits + 1)}
+                className="w-6 h-6 border border-white/15 rounded text-white/30 hover:border-white/30 hover:text-white/60 text-[11px] cursor-pointer"
+              >
+                +
+              </button>
+              <button
+                onClick={() => updateUserCredits(user.id, user.paidCredits + 10)}
+                className="w-7 h-7 border border-white/15 rounded text-white/30 hover:border-white/30 hover:text-white/60 text-[10px] cursor-pointer"
+              >
+                +10
+              </button>
+              <button
+                onClick={() => updateUserCredits(user.id, user.paidCredits + 100)}
+                className="w-8 h-7 border border-white/15 rounded text-white/30 hover:border-white/30 hover:text-white/60 text-[10px] cursor-pointer"
+              >
+                +100
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
