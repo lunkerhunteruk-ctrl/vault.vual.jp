@@ -190,7 +190,7 @@ function addFilmEdgePrint(ctx: CanvasRenderingContext2D, w: number, h: number, t
   ctx.filter = 'blur(0.5px)';
 
   // Main text
-  const text = `${title}   ${lot}   PORTRA 800`;
+  const text = `${title}   ${lot}   VUAL`;
   ctx.fillStyle = 'rgba(215, 140, 50, 0.55)';
   ctx.fillText(text, 0, 0);
 
