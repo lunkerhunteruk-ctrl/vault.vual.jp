@@ -12,12 +12,14 @@ interface ThemeSectionProps {
 
 export function ThemeSection({ theme, onImageClick, onVideoClick }: ThemeSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [hasBeenVisible, setHasBeenVisible] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.1, rootMargin: "200px 0px" }
+      ([entry]) => {
+        if (entry.isIntersecting) setHasBeenVisible(true);
+      },
+      { threshold: 0.1, rootMargin: "400px 0px" }
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
@@ -35,8 +37,8 @@ export function ThemeSection({ theme, onImageClick, onVideoClick }: ThemeSection
         <div
           className="text-center transition-all duration-1000"
           style={{
-            opacity: isVisible ? 1 : 0,
-            transform: isVisible ? "translateY(0)" : "translateY(20px)",
+            opacity: hasBeenVisible ? 1 : 0,
+            transform: hasBeenVisible ? "translateY(0)" : "translateY(20px)",
           }}
         >
           <p className="text-[13px] tracking-[6px] text-white/30 font-light mb-4">
@@ -47,13 +49,13 @@ export function ThemeSection({ theme, onImageClick, onVideoClick }: ThemeSection
           </h2>
           <div
             className="mx-auto mt-6 h-[1px] bg-white/10 transition-all duration-1000 delay-300"
-            style={{ width: isVisible ? 120 : 0 }}
+            style={{ width: hasBeenVisible ? 120 : 0 }}
           />
         </div>
       </div>
 
       {/* Mondrian grid — only render when near viewport */}
-      {isVisible && allMedia.length > 0 && (
+      {hasBeenVisible && allMedia.length > 0 && (
         <div className="px-1">
           <MondrianGrid media={allMedia} onImageClick={onImageClick} onVideoClick={onVideoClick} />
         </div>
