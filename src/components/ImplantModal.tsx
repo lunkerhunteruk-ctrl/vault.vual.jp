@@ -134,13 +134,26 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
     try {
       const fileName = `vault-inject-${Date.now()}.jpg`;
 
-      // For base64 data URLs — open in new tab as fallback-proof download
+      // Convert data URL to blob for reliable download
+      const [header, b64] = resultUrl.split(",");
+      const mime = header?.match(/:(.*?);/)?.[1] || "image/jpeg";
+      const bin = atob(b64);
+      const arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      const blob = new Blob([arr], { type: mime });
+
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = resultUrl;
+      link.href = url;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+
+      // Delay cleanup so browser has time to start download
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 1000);
     } catch (err) {
       console.error("Export error:", err);
     }
