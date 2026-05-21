@@ -113,7 +113,7 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
         // e.g. "https://...20-05-2026/look3.jpg" → date "5.20", lot "3/12"
         const dateMatch = image.file.match(/(\d{2})-(\d{2})-(\d{4})/);
         const lookMatch = image.file.match(/look(\d+)\.jpg/);
-        const filmDate = dateMatch ? `${parseInt(dateMatch[2])}.${parseInt(dateMatch[1])}` : "";
+        const filmDate = dateMatch ? `${dateMatch[1]}.${dateMatch[2]}.${dateMatch[3].slice(2)}` : "";
         const lookNum = lookMatch ? lookMatch[1] : "1";
         const city = themeCity || "VAULT";
 
