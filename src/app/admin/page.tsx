@@ -9,9 +9,19 @@ interface InjectionData {
   initial: number;
 }
 
+const ADMIN_KEY = "vual-vault-2026";
+
 export default function AdminPage() {
   const [counts, setCounts] = useState<Record<string, InjectionData>>({});
   const [loading, setLoading] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("key") === ADMIN_KEY) {
+      setAuthorized(true);
+    }
+  }, []);
 
   const fetchCounts = async () => {
     if (!db) return;
@@ -46,6 +56,7 @@ export default function AdminPage() {
     fetchCounts();
   };
 
+  if (!authorized) return <div className="min-h-screen bg-[#0a0a0a]" />;
   if (loading) return <div className="p-8 text-white/40">Loading...</div>;
 
   const sorted = Object.entries(counts).sort(([a], [b]) => a.localeCompare(b));
