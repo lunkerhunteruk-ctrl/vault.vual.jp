@@ -152,45 +152,55 @@ export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGrid
       {media.map((item, i) => {
         const p = placements[i % placements.length];
         const isVideo = item.type === "video";
+        // Each scene has a seeded random injection limit (5-12)
+        const seed = Math.sin(i * 9301 + 49297) * 49297;
+        const maxInjections = 5 + Math.floor((seed - Math.floor(seed)) * 8);
 
         return (
-          <div
-            key={i}
-            className="relative overflow-hidden cursor-pointer group"
-            style={{
-              gridColumn: `${p.colStart} / ${p.colEnd}`,
-              gridRow: `${p.rowStart} / ${p.rowEnd}`,
-            }}
-            onClick={() => isVideo ? onVideoClick(item.file) : onImageClick(item)}
-          >
-            {isVideo ? (
-              <HlsVideo
-                src={item.file}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            ) : (
-              <Image
-                src={item.file}
-                alt=""
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                loading="lazy"
-              />
-            )}
+          <div key={i} style={{
+            gridColumn: `${p.colStart} / ${p.colEnd}`,
+            gridRow: `${p.rowStart} / ${p.rowEnd}`,
+          }}>
+            <div
+              className="relative overflow-hidden cursor-pointer group h-full"
+              onClick={() => isVideo ? onVideoClick(item.file) : onImageClick(item)}
+            >
+              {isVideo ? (
+                <HlsVideo
+                  src={item.file}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <Image
+                  src={item.file}
+                  alt=""
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  loading="lazy"
+                />
+              )}
+              {!isVideo && (
+                <>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+                  <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <span className="text-[10px] tracking-[3px] text-white/70 font-light">
+                      STEP IN
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
             {!isVideo && (
-              <>
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-                <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-[10px] tracking-[3px] text-white/70 font-light">
-                    STEP IN
-                  </span>
-                </div>
-              </>
+              <div className="py-1.5 px-1">
+                <span className="text-[8px] sm:text-[9px] tracking-[2px] text-white/20 font-light">
+                  CRITICAL OVERLOAD: {maxInjections} INJECTIONS REMAINING
+                </span>
+              </div>
             )}
           </div>
         );

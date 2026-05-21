@@ -280,17 +280,6 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
           <div className="p-6 space-y-6" onClick={() => setPreviewEntity(null)}>
             {state === "select" && (
               <>
-                {/* Generation counter */}
-                <div className="text-center">
-                  <span className="text-[10px] tracking-[3px] text-white/30 font-light">
-                    {remaining > 0
-                      ? t("implant.remaining", { n: remaining })
-                      : user
-                        ? t("implant.noRemaining")
-                        : t("implant.signUpMore")}
-                  </span>
-                </div>
-
                 {/* Height selector */}
                 <div>
                   <p className="text-[10px] tracking-[4px] text-white/40 font-light mb-3">
