@@ -32,8 +32,14 @@ export const useVaultStore = create<VaultStore>()(
       user: null,
       setUser: (user) => {
         if (user) {
-          // Load credits from Firestore on login
-          set({ user, paidCredits: user.paidCredits, freeUsed: user.freeUsed });
+          // Merge: take the higher freeUsed (local or Firestore) to prevent reset
+          // Take the higher paidCredits from Firestore (server is source of truth for purchases)
+          const localFreeUsed = get().freeUsed;
+          const mergedFreeUsed = Math.max(localFreeUsed, user.freeUsed);
+          const mergedPaidCredits = Math.max(get().paidCredits, user.paidCredits);
+          set({ user, paidCredits: mergedPaidCredits, freeUsed: mergedFreeUsed });
+          // Sync merged state back to Firestore
+          syncToFirestore({ user, paidCredits: mergedPaidCredits, freeUsed: mergedFreeUsed });
         } else {
           set({ user: null });
         }
