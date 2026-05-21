@@ -333,8 +333,12 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
                             setPreviewEntity(entity);
                           }
                         }}
-                        onMouseEnter={() => setPreviewEntity(entity)}
-                        onMouseLeave={() => setPreviewEntity(null)}
+                        onMouseEnter={() => {
+                          if (!("ontouchstart" in window)) setPreviewEntity(entity);
+                        }}
+                        onMouseLeave={() => {
+                          if (!("ontouchstart" in window)) setPreviewEntity(null);
+                        }}
                         className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 transition-colors"
                         style={{
                           borderColor:
