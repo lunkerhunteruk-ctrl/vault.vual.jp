@@ -8,6 +8,7 @@ import { AuthModal } from "./AuthModal";
 import { CreditSheet } from "./CreditSheet";
 import { t } from "@/lib/i18n";
 import { applyFilmEffects } from "@/lib/film-effects";
+import { decrementInjection, lookFileToId } from "@/lib/injection-count";
 
 interface ImplantModalProps {
   image: (VaultMedia & { locationId: string }) | null;
@@ -111,6 +112,9 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
         setState("result");
         setResultUrl(withEffects);
         incrementGeneration();
+        // Decrement shared injection count for this scene
+        const lookId = lookFileToId(image.file);
+        decrementInjection(lookId);
       } else {
         setError(data.error || "Generation failed");
         setState("select");
