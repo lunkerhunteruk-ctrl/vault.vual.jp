@@ -33,6 +33,12 @@ export default function AdminPage() {
     fetchCounts();
   };
 
+  const updateInitial = async (lookId: string, initial: number) => {
+    if (!db) return;
+    await updateDoc(doc(db, "injection_counts", lookId), { initial });
+    fetchCounts();
+  };
+
   const reset = async (lookId: string) => {
     if (!db) return;
     const ref = doc(db, "injection_counts", lookId);
@@ -67,33 +73,58 @@ export default function AdminPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => updateCount(lookId, Math.max(0, data.remaining - 1))}
-                className="w-8 h-8 border border-white/20 rounded text-white/40 hover:border-white/40 hover:text-white/70 text-[14px] cursor-pointer"
-              >
-                −
-              </button>
+            <div className="flex items-center gap-4">
+              {/* Initial control */}
+              <div className="flex items-center gap-1">
+                <span className="text-[9px] tracking-[1px] text-white/25 mr-1">INIT</span>
+                <button
+                  onClick={() => updateInitial(lookId, Math.max(1, data.initial - 1))}
+                  className="w-6 h-6 border border-white/10 rounded text-white/25 hover:border-white/30 hover:text-white/50 text-[11px] cursor-pointer"
+                >
+                  −
+                </button>
+                <span className="text-[14px] font-light tabular-nums w-6 text-center text-white/40">
+                  {data.initial}
+                </span>
+                <button
+                  onClick={() => updateInitial(lookId, data.initial + 1)}
+                  className="w-6 h-6 border border-white/10 rounded text-white/25 hover:border-white/30 hover:text-white/50 text-[11px] cursor-pointer"
+                >
+                  +
+                </button>
+              </div>
 
-              <span
-                className="text-[24px] font-light tabular-nums w-10 text-center"
-                style={{
-                  color: data.remaining > 0 ? "var(--vault-cyan)" : "#ef4444",
-                }}
-              >
-                {data.remaining}
-              </span>
+              <div className="w-[1px] h-6 bg-white/10" />
 
-              <button
-                onClick={() => updateCount(lookId, data.remaining + 1)}
-                className="w-8 h-8 border border-white/20 rounded text-white/40 hover:border-white/40 hover:text-white/70 text-[14px] cursor-pointer"
-              >
-                +
-              </button>
+              {/* Remaining control */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => updateCount(lookId, Math.max(0, data.remaining - 1))}
+                  className="w-8 h-8 border border-white/20 rounded text-white/40 hover:border-white/40 hover:text-white/70 text-[14px] cursor-pointer"
+                >
+                  −
+                </button>
+
+                <span
+                  className="text-[24px] font-light tabular-nums w-10 text-center"
+                  style={{
+                    color: data.remaining > 0 ? "var(--vault-cyan)" : "#ef4444",
+                  }}
+                >
+                  {data.remaining}
+                </span>
+
+                <button
+                  onClick={() => updateCount(lookId, data.remaining + 1)}
+                  className="w-8 h-8 border border-white/20 rounded text-white/40 hover:border-white/40 hover:text-white/70 text-[14px] cursor-pointer"
+                >
+                  +
+                </button>
+              </div>
 
               <button
                 onClick={() => reset(lookId)}
-                className="ml-2 px-3 py-1 text-[9px] tracking-[2px] border border-white/10 rounded text-white/25 hover:border-white/30 hover:text-white/50 cursor-pointer"
+                className="ml-1 px-3 py-1 text-[9px] tracking-[2px] border border-white/10 rounded text-white/25 hover:border-white/30 hover:text-white/50 cursor-pointer"
               >
                 RESET
               </button>
