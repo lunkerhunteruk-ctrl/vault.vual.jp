@@ -229,14 +229,14 @@ export function applyFilmEffects(
       }
 
       // Leak — always fires. Weighted probability:
-      // Outdoor Low 45%, Outdoor Mid 25%, Outdoor High 15%,
+      // Outdoor Low 30%, Outdoor Mid 40%, Outdoor High 15%,
       // Indoor High 5%, Indoor Mid 5%, Neon High 5%
       const leakRoll = Math.random() * 100;
       let leakIntensity: number;
       let leakMode: number;
-      if (leakRoll < 45) {        // 0-45: Outdoor Low
+      if (leakRoll < 30) {        // 0-30: Outdoor Low
         leakIntensity = 0.6; leakMode = 0;
-      } else if (leakRoll < 70) {  // 45-70: Outdoor Mid
+      } else if (leakRoll < 70) {  // 30-70: Outdoor Mid
         leakIntensity = 1.0; leakMode = 0;
       } else if (leakRoll < 85) {  // 70-85: Outdoor High
         leakIntensity = 1.6; leakMode = 0;
