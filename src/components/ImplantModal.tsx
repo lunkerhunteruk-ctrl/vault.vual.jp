@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { VaultMedia, VaultEntity } from "@/data/types";
 import { useVaultStore } from "@/lib/store";
@@ -8,7 +8,7 @@ import { AuthModal } from "./AuthModal";
 import { CreditSheet } from "./CreditSheet";
 import { t } from "@/lib/i18n";
 import { applyFilmEffects } from "@/lib/film-effects";
-import { decrementInjection, lookFileToId } from "@/lib/injection-count";
+import { decrementInjection, lookFileToId, getRemainingInjections } from "@/lib/injection-count";
 
 interface ImplantModalProps {
   image: (VaultMedia & { locationId: string }) | null;
@@ -39,6 +39,7 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
   const [showCredits, setShowCredits] = useState(false);
   const [height, setHeight] = useState(170);
   const [previewEntity, setPreviewEntity] = useState<VaultEntity | null>(null);
+  const [sceneRemaining, setSceneRemaining] = useState<number | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const user = useVaultStore((s) => s.user);
@@ -46,7 +47,17 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
   const incrementGeneration = useVaultStore((s) => s.incrementGeneration);
   const totalRemaining = useVaultStore((s) => s.totalRemaining);
 
+  // Fetch scene remaining injections when image changes
+  useEffect(() => {
+    if (image) {
+      const lookId = lookFileToId(image.file);
+      getRemainingInjections(lookId).then(setSceneRemaining);
+    }
+  }, [image]);
+
   if (!image) return null;
+
+  const sceneCorrupted = sceneRemaining !== null && sceneRemaining <= 0;
 
   const handleImplant = async () => {
     if (!selectedEntity && !userPhoto) return;
@@ -128,7 +139,8 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
         incrementGeneration();
         // Decrement shared injection count for this scene
         const lookId = lookFileToId(image.file);
-        decrementInjection(lookId);
+        const newRemaining = await decrementInjection(lookId);
+        setSceneRemaining(newRemaining);
       } else {
         setError(data.error || "Generation failed");
         setState("select");
@@ -414,23 +426,34 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
                 )}
 
                 {/* INJECT button */}
-                <button
-                  onClick={handleImplant}
-                  disabled={!selectedEntity && !userPhoto}
-                  className="w-full py-4 text-[13px] tracking-[6px] font-light transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed"
-                  style={{
-                    background:
-                      selectedEntity || userPhoto
-                        ? "linear-gradient(135deg, var(--vault-cyan) 0%, #0088aa 100%)"
-                        : "rgba(255,255,255,0.05)",
-                    color:
-                      selectedEntity || userPhoto
-                        ? "#000"
-                        : "rgba(255,255,255,0.2)",
-                  }}
-                >
-                  INJECT
-                </button>
+                {sceneCorrupted ? (
+                  <div className="w-full py-4 text-center">
+                    <p className="text-[13px] tracking-[6px] font-light text-red-500/60">
+                      SCENE CORRUPTED
+                    </p>
+                    <p className="text-[9px] tracking-[2px] text-white/15 font-light mt-2">
+                      THIS SCENE HAS REACHED CAPACITY
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleImplant}
+                    disabled={!selectedEntity && !userPhoto}
+                    className="w-full py-4 text-[13px] tracking-[6px] font-light transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed"
+                    style={{
+                      background:
+                        selectedEntity || userPhoto
+                          ? "linear-gradient(135deg, var(--vault-cyan) 0%, #0088aa 100%)"
+                          : "rgba(255,255,255,0.05)",
+                      color:
+                        selectedEntity || userPhoto
+                          ? "#000"
+                          : "rgba(255,255,255,0.2)",
+                    }}
+                  >
+                    INJECT
+                  </button>
+                )}
               </>
             )}
 

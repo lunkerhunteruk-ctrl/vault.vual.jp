@@ -207,7 +207,9 @@ export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGrid
             {!isVideo && (
               <div className="py-1.5 px-1">
                 <span className="text-[8px] sm:text-[9px] tracking-[2px] text-white/20 font-light">
-                  CRITICAL OVERLOAD: {remaining[lookId] ?? "..."} INJECTIONS REMAINING
+                  {(remaining[lookId] ?? 1) > 0
+                    ? `CRITICAL OVERLOAD: ${remaining[lookId] ?? "..."} INJECTIONS REMAINING`
+                    : "SCENE CORRUPTED — NO INJECTIONS AVAILABLE"}
                 </span>
               </div>
             )}
