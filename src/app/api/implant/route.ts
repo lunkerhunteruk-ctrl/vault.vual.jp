@@ -66,8 +66,8 @@ export async function POST(request: NextRequest) {
       inline_data: { mime_type: entityData.mimeType, data: entityData.data },
     });
 
-    // Recipe reference images from R2 (garment, shoes)
-    for (const name of ['garment.jpeg', 'shoes.jpeg']) {
+    // Recipe reference images from R2 (garment, shoes, jacket, extras)
+    for (const name of ['garment.jpeg', 'shoes.jpeg', 'jacket.jpeg', 'extra2.jpeg']) {
       const buf = await fetchR2File(`${recipeBase}/${name}`);
       if (buf) {
         imageParts.push({
