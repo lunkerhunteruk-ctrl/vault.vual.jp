@@ -41,10 +41,8 @@ export default function AdminPage() {
 
   const reset = async (lookId: string) => {
     if (!db) return;
-    const ref = doc(db, "injection_counts", lookId);
-    const snap = await getDoc(ref);
-    const initial = snap.exists() ? snap.data()?.initial || 5 : 5;
-    await setDoc(ref, { remaining: initial, initial }, { merge: true });
+    const initial = counts[lookId]?.initial ?? 0;
+    await updateDoc(doc(db, "injection_counts", lookId), { remaining: initial });
     fetchCounts();
   };
 
