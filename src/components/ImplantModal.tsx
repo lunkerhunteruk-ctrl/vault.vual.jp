@@ -239,33 +239,39 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
             }}
           >
             {state === "implanting" ? (
-              <div className="w-full h-full flex flex-col items-center justify-center gap-6 relative overflow-hidden">
+              <div className={`w-full h-full flex flex-col items-center justify-center gap-6 relative overflow-hidden ${userPhoto ? "dna-inject-bg" : ""}`}>
                 {/* Electromagnetic noise background */}
                 <div className="absolute inset-0 inject-noise" />
                 {/* Scan lines */}
-                <div className="absolute inset-0 inject-scanlines" />
+                <div className={`absolute inset-0 ${userPhoto ? "dna-scanlines" : "inject-scanlines"}`} />
                 {/* Glitch bars */}
-                <div className="absolute inset-0 inject-glitch" />
+                <div className={`absolute inset-0 ${userPhoto ? "dna-glitch" : "inject-glitch"}`} />
+                {/* Lightning bolts (DNA inject only) */}
+                {userPhoto && (
+                  <>
+                    <div className="absolute inset-0 dna-lightning-1" />
+                    <div className="absolute inset-0 dna-lightning-2" />
+                    <div className="absolute inset-0 dna-vignette" />
+                  </>
+                )}
 
                 {/* Steps */}
                 <div className="relative z-10 text-left space-y-3 px-8">
                   {INJECT_STEPS.map((step, i) => (
                     <p
                       key={step}
-                      className="text-[11px] tracking-[3px] font-light transition-all duration-300"
+                      className={`text-[11px] tracking-[3px] font-light transition-all duration-300 ${userPhoto && i === currentStep ? "dna-text-shake" : ""}`}
                       style={{
                         color:
                           i <= currentStep
-                            ? "var(--vault-cyan)"
+                            ? userPhoto ? "#ff3333" : "var(--vault-cyan)"
                             : "rgba(255,255,255,0.08)",
                         opacity: i <= currentStep ? 1 : 0.3,
                         textShadow:
                           i === currentStep
-                            ? "0 0 10px var(--vault-cyan), 0 0 30px var(--vault-cyan)"
-                            : "none",
-                        transform:
-                          i === currentStep
-                            ? `translateX(${Math.random() > 0.5 ? 1 : -1}px)`
+                            ? userPhoto
+                              ? "0 0 10px #ff3333, 0 0 30px #ff3333, 0 0 60px #ff000080"
+                              : "0 0 10px var(--vault-cyan), 0 0 30px var(--vault-cyan)"
                             : "none",
                       }}
                     >
@@ -276,10 +282,21 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
                 </div>
 
                 {/* Status text */}
-                <p className="relative z-10 text-[12px] tracking-[6px] font-light inject-flicker"
-                   style={{ color: "var(--vault-cyan)" }}>
-                  INJECTING
-                </p>
+                {userPhoto ? (
+                  <div className="relative z-10 dna-status-flicker">
+                    <p className="text-[14px] tracking-[8px] font-light text-red-500">
+                      INJECTING DNA
+                    </p>
+                    <p className="text-[8px] tracking-[3px] font-light text-red-500/40 mt-1">
+                      WARNING: NEURAL PATTERN OVERRIDE IN PROGRESS
+                    </p>
+                  </div>
+                ) : (
+                  <p className="relative z-10 text-[12px] tracking-[6px] font-light inject-flicker"
+                     style={{ color: "var(--vault-cyan)" }}>
+                    INJECTING
+                  </p>
+                )}
 
               </div>
             ) : resultUrl?.startsWith("data:") ? (
@@ -578,6 +595,119 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
           }
           .inject-warning-pulse {
             animation: warning-pulse 2s ease-in-out infinite;
+          }
+
+          /* === DNA INJECT EFFECTS === */
+          .dna-inject-bg {
+            background: radial-gradient(ellipse at center, rgba(80,0,0,0.3) 0%, rgba(0,0,0,0.95) 70%);
+          }
+          @keyframes dna-scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+          }
+          .dna-scanlines {
+            background: repeating-linear-gradient(
+              0deg, transparent, transparent 1px,
+              rgba(255, 30, 30, 0.06) 1px, rgba(255, 30, 30, 0.06) 3px
+            );
+            animation: dna-scan 1.5s linear infinite;
+          }
+          @keyframes dna-glitch-anim {
+            0%, 88%, 100% { opacity: 0; transform: translateX(0); }
+            89% {
+              opacity: 1; transform: translateX(-30px) scaleX(1.3);
+              clip-path: inset(15% 0 65% 0);
+              background: rgba(255, 0, 0, 0.12);
+            }
+            91% {
+              opacity: 1; transform: translateX(25px) scaleX(0.8);
+              clip-path: inset(55% 0 15% 0);
+              background: rgba(255, 0, 0, 0.08);
+            }
+            92% {
+              opacity: 1; transform: translateX(-15px);
+              clip-path: inset(30% 0 40% 0);
+              background: rgba(255, 50, 0, 0.1);
+            }
+            93% { opacity: 0; }
+          }
+          .dna-glitch {
+            animation: dna-glitch-anim 1.2s infinite;
+          }
+          @keyframes lightning-1 {
+            0%, 93%, 100% { opacity: 0; }
+            94% { opacity: 1; }
+            95% { opacity: 0; }
+            96% { opacity: 0.7; }
+            97% { opacity: 0; }
+          }
+          @keyframes lightning-2 {
+            0%, 85%, 100% { opacity: 0; }
+            86% { opacity: 0.8; }
+            87% { opacity: 0; }
+            88% { opacity: 1; }
+            89% { opacity: 0; }
+          }
+          .dna-lightning-1 {
+            background: linear-gradient(
+              90deg,
+              transparent 20%,
+              rgba(255, 60, 60, 0.15) 20.5%,
+              transparent 21%,
+              transparent 45%,
+              rgba(255, 100, 60, 0.1) 45.3%,
+              transparent 45.6%,
+              transparent 70%,
+              rgba(255, 40, 40, 0.12) 70.2%,
+              transparent 70.5%
+            );
+            animation: lightning-1 1.8s infinite;
+            mix-blend-mode: screen;
+          }
+          .dna-lightning-2 {
+            background: linear-gradient(
+              90deg,
+              transparent 10%,
+              rgba(255, 30, 0, 0.1) 10.3%,
+              transparent 10.6%,
+              transparent 35%,
+              rgba(255, 80, 30, 0.15) 35.2%,
+              transparent 35.5%,
+              transparent 60%,
+              rgba(255, 50, 50, 0.08) 60.4%,
+              transparent 60.7%,
+              transparent 85%,
+              rgba(255, 20, 20, 0.12) 85.2%,
+              transparent 85.5%
+            );
+            animation: lightning-2 1.3s infinite;
+            mix-blend-mode: screen;
+          }
+          .dna-vignette {
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(100,0,0,0.4) 100%);
+          }
+          @keyframes dna-shake {
+            0%, 100% { transform: translateX(0); }
+            10% { transform: translateX(-2px); }
+            20% { transform: translateX(3px); }
+            30% { transform: translateX(-1px); }
+            40% { transform: translateX(2px); }
+            50% { transform: translateX(0); }
+          }
+          .dna-text-shake {
+            animation: dna-shake 0.3s infinite;
+          }
+          @keyframes dna-status-flash {
+            0%, 100% { opacity: 1; }
+            8% { opacity: 0.1; }
+            12% { opacity: 1; }
+            50% { opacity: 0.7; }
+            54% { opacity: 0.2; }
+            58% { opacity: 1; }
+          }
+          .dna-status-flicker {
+            animation: dna-status-flash 2s infinite;
+            text-align: center;
           }
         `}</style>
       </div>
