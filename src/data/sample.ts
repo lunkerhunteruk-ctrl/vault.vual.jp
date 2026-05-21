@@ -45,7 +45,4 @@ export const sampleEntities: VaultEntity[] = [
   { id: "entity-007", name: "ENTITY_007", thumbnailUrl: "/entities/007.jpeg", referenceUrl: "/entities/007.jpeg" },
   { id: "entity-008", name: "ENTITY_008", thumbnailUrl: "/entities/008.jpeg", referenceUrl: "/entities/008.jpeg" },
   { id: "entity-009", name: "ENTITY_009", thumbnailUrl: "/entities/009.jpeg", referenceUrl: "/entities/009.jpeg" },
-  { id: "entity-010", name: "ENTITY_010", thumbnailUrl: "/entities/010.jpeg", referenceUrl: "/entities/010.jpeg" },
-  { id: "entity-011", name: "ENTITY_011", thumbnailUrl: "/entities/011.jpeg", referenceUrl: "/entities/011.jpeg" },
-  { id: "entity-012", name: "ENTITY_012", thumbnailUrl: "/entities/012.jpeg", referenceUrl: "/entities/012.jpeg" },
 ];
