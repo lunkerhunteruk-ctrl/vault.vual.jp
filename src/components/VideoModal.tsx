@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { HlsVideo } from "./HlsVideo";
 
 interface VideoModalProps {
   src: string | null;
@@ -8,14 +8,6 @@ interface VideoModalProps {
 }
 
 export function VideoModal({ src, onClose }: VideoModalProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (src && videoRef.current) {
-      videoRef.current.play();
-    }
-  }, [src]);
-
   if (!src) return null;
 
   return (
@@ -33,14 +25,15 @@ export function VideoModal({ src, onClose }: VideoModalProps) {
         </svg>
       </button>
 
-      <video
-        ref={videoRef}
-        src={src}
-        controls
-        playsInline
-        className="max-h-[90vh] max-w-[90vw] object-contain"
-        onClick={(e) => e.stopPropagation()}
-      />
+      <div onClick={(e) => e.stopPropagation()}>
+        <HlsVideo
+          src={src}
+          autoPlay
+          controls
+          playsInline
+          className="max-h-[90vh] max-w-[90vw] object-contain"
+        />
+      </div>
     </div>
   );
 }

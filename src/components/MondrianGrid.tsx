@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import Image from "next/image";
 import { VaultMedia } from "@/data/types";
+import { HlsVideo } from "./HlsVideo";
 
 interface PlacedCell {
   colStart: number;
@@ -110,7 +111,7 @@ export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGrid
             onClick={() => isVideo ? onVideoClick(item.file) : onImageClick(item)}
           >
             {isVideo ? (
-              <video
+              <HlsVideo
                 src={item.file}
                 autoPlay
                 loop

@@ -16,7 +16,7 @@ export const sampleThemes: VaultTheme[] = [
         implantPrompt: "とうきょう しぶや にちじょう",
         film: "leicaPortra800",
         media: [
-          { file: `${STREAM_BASE}/${STREAM_SHOW01_ID}/downloads/default.mp4`, type: "video", aspect: "9:16" },
+          { file: `${STREAM_BASE}/${STREAM_SHOW01_ID}/manifest/video.m3u8`, type: "video", aspect: "9:16" },
           { file: `${R2_BASE}/20-05-2026/look1.jpg`, type: "image", aspect: "3:4", isHero: true },
           { file: `${R2_BASE}/20-05-2026/look2.jpg`, type: "image", aspect: "3:4" },
           { file: `${R2_BASE}/20-05-2026/look3.jpg`, type: "image", aspect: "3:4" },
