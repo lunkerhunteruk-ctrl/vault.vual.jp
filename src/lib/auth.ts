@@ -52,11 +52,7 @@ async function upsertUser(firebaseUser: import('firebase/auth').User): Promise<V
 export async function signInWithGoogle(): Promise<VaultUser | null> {
   if (!auth) return null;
 
-  if (isMobile()) {
-    await signInWithRedirect(auth, googleProvider);
-    return null;
-  }
-
+  // Always use popup — redirect is unreliable on Safari/iOS due to ITP
   const credential = await signInWithPopup(auth, googleProvider);
   return upsertUser(credential.user);
 }
