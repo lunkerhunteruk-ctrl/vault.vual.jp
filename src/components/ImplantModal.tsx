@@ -440,7 +440,7 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
                   /* User photo: red WARNING button with shuffle */
                   <button
                     onClick={handleImplant}
-                    className="w-full py-4 inject-warning-pulse transition-all duration-300"
+                    className="w-full py-4 inject-warning-pulse transition-all duration-300 cursor-pointer"
                     style={{
                       background: "linear-gradient(135deg, #cc2020 0%, #991010 100%)",
                     }}
