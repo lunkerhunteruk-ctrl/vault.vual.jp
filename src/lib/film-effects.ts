@@ -194,8 +194,7 @@ export function applyFilmEffects(dataUrl: string): Promise<string> {
       ctx.drawImage(canvas, 0, 0);
       ctx.filter = 'none';
 
-      // Grain — Mid (0.08)
-      addGrain(ctx, w, h, 0.08);
+      // Grain — OFF (Gemini handles grain via pushed Portra 800 prompt)
 
       resolve(canvas.toDataURL('image/jpeg', 0.92));
     };
