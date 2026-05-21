@@ -123,7 +123,7 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = () => {
     // Guest must sign up to export
     if (!user) {
       setShowAuth(true);
@@ -133,36 +133,16 @@ export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
     if (!resultUrl) return;
     try {
       const fileName = `vault-inject-${Date.now()}.jpg`;
-      const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
 
-      // Convert base64 data URL to blob
-      let blob: Blob;
-      if (resultUrl.startsWith("data:")) {
-        const [header, b64] = resultUrl.split(",");
-        const mime = header.match(/:(.*?);/)?.[1] || "image/jpeg";
-        const bin = atob(b64);
-        const arr = new Uint8Array(bin.length);
-        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-        blob = new Blob([arr], { type: mime });
-      } else {
-        const res = await fetch(resultUrl);
-        blob = await res.blob();
-      }
-
-      if (isMobile && navigator.share && navigator.canShare?.({ files: [new File([blob], fileName, { type: "image/jpeg" })] })) {
-        await navigator.share({ files: [new File([blob], fileName, { type: "image/jpeg" })] });
-      } else {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = fileName;
-        link.click();
-        URL.revokeObjectURL(url);
-      }
+      // For base64 data URLs — open in new tab as fallback-proof download
+      const link = document.createElement("a");
+      link.href = resultUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (err) {
-      if ((err as Error).name !== "AbortError") {
-        console.error("Export error:", err);
-      }
+      console.error("Export error:", err);
     }
   };
 

@@ -194,8 +194,8 @@ export function applyFilmEffects(dataUrl: string): Promise<string> {
       ctx.drawImage(canvas, 0, 0);
       ctx.filter = 'none';
 
-      // Grain — always High (0.15)
-      addGrain(ctx, w, h, 0.15);
+      // Grain — always Mid (0.08)
+      addGrain(ctx, w, h, 0.08);
 
       resolve(canvas.toDataURL('image/jpeg', 0.92));
     };
