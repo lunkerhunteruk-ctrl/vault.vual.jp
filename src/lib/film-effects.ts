@@ -63,7 +63,8 @@ function addLightLeak(ctx: CanvasRenderingContext2D, w: number, h: number, multi
   }
 }
 
-function addEdgeBurn(ctx: CanvasRenderingContext2D, w: number, h: number, intensity: number) {
+// leakMode: 0=Outdoor, 1=Indoor, 2=Neon
+function addEdgeBurn(ctx: CanvasRenderingContext2D, w: number, h: number, intensity: number, leakMode: number = 0) {
   const isRight = Math.random() > 0.5;
   const leakWidth = Math.floor(w * (0.05 + Math.random() * 0.15) * intensity);
 
@@ -118,11 +119,24 @@ function addEdgeBurn(ctx: CanvasRenderingContext2D, w: number, h: number, intens
       const ratio = dist <= 0 ? 1.0 : 1.0 - (dist / leakWidth);
       const inten = Math.pow(ratio, 3.0);
 
-      // Outdoor mode: white → yellow → orange
       const t = inten * yNoise[y];
-      const r = Math.min(255, Math.floor(Math.min(t * 2.0, 1) * 255));
-      const g = Math.min(255, Math.floor(Math.max(t * 1.5 - 0.2, 0) * 160));
-      const b = Math.min(255, Math.floor(Math.max(t * 2.0 - 1.0, 0) * 200));
+      let r: number, g: number, b: number;
+      if (leakMode === 0) {
+        // Outdoor: white → yellow → orange
+        r = Math.min(255, Math.floor(Math.min(t * 2.0, 1) * 255));
+        g = Math.min(255, Math.floor(Math.max(t * 1.5 - 0.2, 0) * 160));
+        b = Math.min(255, Math.floor(Math.max(t * 2.0 - 1.0, 0) * 200));
+      } else if (leakMode === 1) {
+        // Indoor: film chemical stain
+        r = Math.floor((1 - t) * 120 * t * 1.2);
+        g = Math.floor(t * 90 * t * 0.9);
+        b = Math.floor((t * 140 + (1 - t) * 110) * t * 1.0);
+      } else {
+        // Neon: vivid cyan → magenta
+        r = Math.floor((1 - t) * 180 * t * 2);
+        g = Math.floor(t * 180 * t * 1.5);
+        b = Math.floor((t * 230 + (1 - t) * 180) * t * 1.5);
+      }
 
       const idx = (y * w + x) * 4;
       data[idx] = r;
@@ -182,12 +196,26 @@ export function applyFilmEffects(dataUrl: string): Promise<string> {
         addLightLeak(ctx, w, h, multiplier);
       }
 
-      // Leak / Edge Burn — Outdoor (40% none, 20% low, 20% mid, 20% high)
-      const leakLevel = pickIntensity();
-      if (leakLevel > 0) {
-        const burnIntensity = [0, 0.6, 1.0, 1.6][leakLevel];
-        addEdgeBurn(ctx, w, h, burnIntensity);
+      // Leak — always fires. Weighted probability:
+      // Outdoor Low 45%, Outdoor Mid 25%, Outdoor High 15%,
+      // Indoor High 5%, Indoor Mid 5%, Neon High 5%
+      const leakRoll = Math.random() * 100;
+      let leakIntensity: number;
+      let leakMode: number;
+      if (leakRoll < 45) {        // 0-45: Outdoor Low
+        leakIntensity = 0.6; leakMode = 0;
+      } else if (leakRoll < 70) {  // 45-70: Outdoor Mid
+        leakIntensity = 1.0; leakMode = 0;
+      } else if (leakRoll < 85) {  // 70-85: Outdoor High
+        leakIntensity = 1.6; leakMode = 0;
+      } else if (leakRoll < 90) {  // 85-90: Indoor High
+        leakIntensity = 1.6; leakMode = 1;
+      } else if (leakRoll < 95) {  // 90-95: Indoor Mid
+        leakIntensity = 1.0; leakMode = 1;
+      } else {                     // 95-100: Neon High
+        leakIntensity = 1.6; leakMode = 2;
       }
+      addEdgeBurn(ctx, w, h, leakIntensity, leakMode);
 
       // Desaturation — always 0.75
       ctx.filter = 'saturate(0.75)';
