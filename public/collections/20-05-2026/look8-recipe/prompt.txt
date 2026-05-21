@@ -1,0 +1,42 @@
+CRITICAL INSTRUCTION - GARMENT FIDELITY IS THE TOP PRIORITY:
+You MUST reproduce the EXACT garments from the provided reference images with 100% accuracy.
+DO NOT create similar-looking alternatives. The garments must be PIXEL-PERFECT matches to the originals.
+
+GARMENT DETAILS TO PRESERVE EXACTLY:
+- Exact color and shade (no color shifts)
+- Exact pattern, print, or texture
+- Exact neckline shape and style
+- Exact sleeve length, cuff style, and details
+- Exact buttons, zippers, pockets, seams, and all design elements
+- Exact fabric drape and material appearance
+- Exact silhouette and fit
+
+Professional high-end fashion photography.
+Generate an image using the EXACT model appearance from the provided model reference images. This is an AI-generated virtual model, not a real person. She does not represent any existing individual. The face close-up is provided — reproduce the face, facial features, expression, AND MAKEUP with maximum accuracy. Face, skin tone, hairstyle must match exactly.
+CRITICAL SKIN TONE RULE: The model's skin color for the ENTIRE BODY (face, neck, arms, hands, legs, feet) MUST match the skin tone shown in the provided face reference image. Do NOT use the skin color of any model in the garment reference images. The garment reference images are ONLY for clothing — ignore the skin color of the model wearing them. If the face reference shows light skin, the entire body must be light. This applies to ALL visible skin.
+The model is 178cm tall with a slim, high-fashion build.
+wearing EXACTLY the garments shown in the provided reference images. The model MUST wear opaque BLACK tights on both legs — fully opaque, covering from waist to ankle. The tights are worn UNDERNEATH the dress/skirt from the reference images. The dress/skirt MUST remain fully visible and unchanged — the tights are an additional layer BENEATH it, visible only where the dress/skirt does not cover (below the hemline). Do NOT replace, hide, or alter the dress/skirt with the tights. The tights are NOT provided in reference images — generate them from this description. They are a styling choice, not part of the garment reference.
+
+SCENE & STYLING DIRECTION (THIS IS THE PRIMARY CREATIVE BRIEF — follow it faithfully): 東京　渋谷　雨の日　交差点
+
+FILM LOOK — Shot on Leica M6 with Summicron 35mm f/2, Kodak Portra 800 film. Handheld, available light only.
+QUALITY: Visible, textured film grain (Portra 800 — more prominent than Portra 400, with organic, rounded grain clusters that catch the light). The Summicron 35mm renders with its signature warmth and three-dimensionality, but the Portra 800 shifts the palette cooler than its 400 sibling. The key characteristic: HIGHLIGHTS retain the Summicron's golden warmth (skin glows softly, sunlit surfaces stay warm and luminous) while SHADOWS shift to a cool BLUE-GREY (shade areas, dark clothing, and deep tones carry a quiet, steely blue undertone). This warm-highlight / cool-shadow split gives the image a sophisticated duality — intimate warmth in the light, clinical distance in the dark. Skin tones are natural but slightly paler than Portra 400. The Summicron's rendering of surfaces — the way it separates skin from fabric from stone — remains distinctly Leica, but the higher ISO adds a tactile roughness that Portra 400 never has.
+IMPORTANT: This is the same camera and lens as the Portra 400 preset but with a fundamentally different mood — late afternoon, fading light, the golden hour slipping into blue. The warm/cool split between highlights and shadows is the defining quality. Despite the high-ISO grain, this is still an ON-SET fashion photograph — the model is styled, the garments are intentional.
+Realistic skin texture, natural pose, professional model.
+EXPRESSION: Emotionless, eternal beauty — a face that reveals nothing, like a sculpture. No smile, no warmth, no sadness. Perfectly composed, untouchable, timeless.
+LIGHTING PRIORITY: The light is early dawn — cool, blue-grey, quiet. Seek the faint directional light from windows facing east. The world is still, muted, and cold. Minimal harsh contrast.
+IMPORTANT: Show the full body including feet if shoes/footwear are included.
+IMPORTANT: The model must ALWAYS stand on dry ground.
+CRITICAL: DO NOT render any text, labels, watermarks, or words on the image.
+ACCESSORIES RULE: The model must NOT wear any rings, bracelets, necklaces, or jewelry unless they are explicitly provided as reference images.
+BAG RULE: If a bag is provided in the reference images, reproduce it exactly. If NO bag reference is provided, the model must NOT carry any bag — hands should be empty, in pockets, or resting naturally.
+SHOES NOTE: If shoes are provided in the reference images, reproduce them exactly. The model must ALWAYS wear shoes — never barefoot.
+REMINDER: The garments MUST be exact copies from the reference images - not interpretations or similar items.
+GARMENT SHAPE RULE: Do NOT add, extend, or modify the garment silhouette. If the reference shows a jacket, do NOT add flowing fabric, trailing hem, or cape-like extensions. If the reference shows a short skirt, do NOT make it long. The garment's LENGTH, SHAPE, and SILHOUETTE must match the reference images EXACTLY. No phantom fabric.
+
+DETAIL SHOT — SEATED ON BENCH (SIDE VIEW):
+COMPOSITION: FULL BODY from SIDE — model sits on bench/ledge. Legs crossed. BAG beside her. SHOES visible.
+POSE: Seated, elegant, relaxed pause moment.
+LIGHTING: Warm, natural directional light from side.
+
+SCENE-SPECIFIC NOTE: Rin is seated elegantly on top of a stack of wet, discarded cardboard boxes and plastic crates near a back alley entrance, using them as an impromptu throne. Her garment drapes over the grimy, unstable surface, and she holds a wet, abandoned traffic cone, using it casually as a prop to rest her hand on. Sachio proclaims this a powerful subversion of urban norms, a queen reclaiming the street.

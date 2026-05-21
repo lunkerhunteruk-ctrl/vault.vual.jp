@@ -1,65 +1,93 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import { ThemeSection } from "@/components/ThemeSection";
+import { ImplantModal } from "@/components/ImplantModal";
+import { VaultMedia } from "@/data/types";
+import { sampleThemes, sampleEntities } from "@/data/sample";
+import { handleGoogleRedirectResult } from "@/lib/auth";
+import { useVaultStore } from "@/lib/store";
+import { UserBadge } from "@/components/UserBadge";
+import { VideoModal } from "@/components/VideoModal";
+import { HeroSection } from "@/components/HeroSection";
+
+export default function VaultHome() {
+  const [selectedImage, setSelectedImage] = useState<
+    (VaultMedia & { locationId: string }) | null
+  >(null);
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const setUser = useVaultStore((s) => s.setUser);
+
+  const addPaidCredits = useVaultStore((s) => s.addPaidCredits);
+
+  // Handle Google redirect result (mobile sign-in)
+  useEffect(() => {
+    handleGoogleRedirectResult().then((user) => {
+      if (user) setUser(user);
+    });
+  }, [setUser]);
+
+  // Handle credit purchase success
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("credit_success") === "true") {
+      const credits = parseInt(params.get("credits") || "0", 10);
+      if (credits > 0) {
+        addPaidCredits(credits);
+      }
+      // Clean URL
+      window.history.replaceState({}, "", "/");
+    }
+    if (params.get("credit_canceled") === "true") {
+      window.history.replaceState({}, "", "/");
+    }
+  }, [addPaidCredits]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="relative">
+      <UserBadge />
+      {/* Hero — animated tagline → auto-scroll */}
+      <HeroSection firstThemeId={sampleThemes[0]?.id} />
+
+      {/* Theme sections */}
+      {sampleThemes.map((theme) => (
+        <ThemeSection
+          key={theme.id}
+          theme={theme}
+          onImageClick={setSelectedImage}
+          onVideoClick={setVideoSrc}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      ))}
+
+      {/* Video player modal */}
+      <VideoModal src={videoSrc} onClose={() => setVideoSrc(null)} />
+
+      {/* IMPLANT modal */}
+      <ImplantModal
+        image={selectedImage}
+        entities={sampleEntities}
+        onClose={() => setSelectedImage(null)}
+      />
+
+      {/* Side navigation dots */}
+      <nav className="fixed right-6 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3">
+        {sampleThemes.map((theme) => (
+          <button
+            key={theme.id}
+            onClick={() => {
+              document
+                .getElementById(theme.id)
+                ?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="group flex items-center gap-3"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <span className="text-[9px] tracking-[2px] text-white/0 group-hover:text-white/40 transition-colors">
+              {theme.city}
+            </span>
+            <div className="w-1.5 h-1.5 rounded-full bg-white/20 group-hover:bg-white/60 transition-colors" />
+          </button>
+        ))}
+      </nav>
+    </main>
   );
 }

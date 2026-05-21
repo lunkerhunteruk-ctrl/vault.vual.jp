@@ -1,0 +1,494 @@
+"use client";
+
+import { useState, useRef } from "react";
+import Image from "next/image";
+import { VaultMedia, VaultEntity } from "@/data/types";
+import { useVaultStore } from "@/lib/store";
+import { AuthModal } from "./AuthModal";
+import { CreditSheet } from "./CreditSheet";
+import { t } from "@/lib/i18n";
+import { applyFilmEffects } from "@/lib/film-effects";
+
+interface ImplantModalProps {
+  image: (VaultMedia & { locationId: string }) | null;
+  entities: VaultEntity[];
+  onClose: () => void;
+}
+
+type ModalState = "select" | "implanting" | "result";
+
+const INJECT_STEPS = [
+  "EXTRACTING DNA",
+  "INJECTING INTO SCENE",
+  "FUSING LAYERS",
+  "SEALING OUTPUT",
+];
+
+export function ImplantModal({ image, entities, onClose }: ImplantModalProps) {
+  const [state, setState] = useState<ModalState>("select");
+  const [selectedEntity, setSelectedEntity] = useState<VaultEntity | null>(null);
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+
+  const [showCredits, setShowCredits] = useState(false);
+  const [previewEntity, setPreviewEntity] = useState<VaultEntity | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const user = useVaultStore((s) => s.user);
+  const canGenerate = useVaultStore((s) => s.canGenerate);
+  const incrementGeneration = useVaultStore((s) => s.incrementGeneration);
+  const totalRemaining = useVaultStore((s) => s.totalRemaining);
+
+  if (!image) return null;
+
+  const handleImplant = async () => {
+    if (!selectedEntity && !userPhoto) return;
+
+    // Check generation limit
+    if (!canGenerate()) {
+      if (!user) {
+        setShowAuth(true);
+      } else {
+        setShowCredits(true);
+      }
+      return;
+    }
+
+    setState("implanting");
+    setError(null);
+
+    // Animate steps while API call runs in parallel
+    const stepAnimation = (async () => {
+      for (let i = 0; i < INJECT_STEPS.length - 1; i++) {
+        setCurrentStep(i);
+        await new Promise((r) => setTimeout(r, 1200 + Math.random() * 600));
+      }
+    })();
+
+    try {
+      // Get entity image as base64
+      let entityImage: string;
+      if (userPhoto) {
+        entityImage = userPhoto;
+      } else if (selectedEntity) {
+        entityImage = selectedEntity.referenceUrl;
+        if (!entityImage.startsWith("data:")) {
+          const res = await fetch(entityImage);
+          const blob = await res.blob();
+          entityImage = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+        }
+      } else {
+        return;
+      }
+
+      const res = await fetch("/api/implant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          entityImage,
+          lookFile: image.file,
+        }),
+      });
+
+      const data = await res.json();
+
+      await stepAnimation;
+      setCurrentStep(INJECT_STEPS.length - 1);
+      await new Promise((r) => setTimeout(r, 500));
+
+      if (data.success && data.resultImage) {
+        // Apply random film effects (flare + leak)
+        const withEffects = await applyFilmEffects(data.resultImage);
+        setState("result");
+        setResultUrl(withEffects);
+        incrementGeneration();
+      } else {
+        setError(data.error || "Generation failed");
+        setState("select");
+      }
+    } catch (err) {
+      await stepAnimation;
+      console.error("IMPLANT error:", err);
+      setError(t("implant.connectionError"));
+      setState("select");
+    }
+  };
+
+  const handleExport = async () => {
+    // Guest must sign up to export
+    if (!user) {
+      setShowAuth(true);
+      return;
+    }
+
+    if (!resultUrl) return;
+    try {
+      const res = await fetch(resultUrl);
+      const blob = await res.blob();
+      const fileName = `vault-implant-${Date.now()}.jpg`;
+      const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+
+      if (isMobile && navigator.share && navigator.canShare?.({ files: [new File([blob], fileName, { type: "image/jpeg" })] })) {
+        await navigator.share({ files: [new File([blob], fileName, { type: "image/jpeg" })] });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") {
+        console.error("Export error:", err);
+      }
+    }
+  };
+
+  const handleUserPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setUserPhoto(reader.result as string);
+      setSelectedEntity(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClose = () => {
+    setState("select");
+    setSelectedEntity(null);
+    setUserPhoto(null);
+    setCurrentStep(0);
+    setResultUrl(null);
+    onClose();
+  };
+
+  const remaining = totalRemaining();
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-50 flex items-end justify-center"
+        onClick={handleClose}
+      >
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+
+        {/* Modal sheet */}
+        <div
+          className="relative w-full max-w-lg max-h-[90vh] bg-[#0d0d0d] border-t border-white/10 rounded-t-2xl overflow-y-auto animate-slide-up"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Handle bar */}
+          <div className="flex justify-center pt-3 pb-2">
+            <div className="w-10 h-1 bg-white/20 rounded-full" />
+          </div>
+
+          {/* Image preview — aspect adapts to image */}
+          <div
+            className="relative w-full select-none"
+            style={{
+              aspectRatio: image.aspect.replace(":", "/"),
+            }}
+          >
+            {state === "implanting" ? (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-6 relative overflow-hidden">
+                {/* Electromagnetic noise background */}
+                <div className="absolute inset-0 inject-noise" />
+                {/* Scan lines */}
+                <div className="absolute inset-0 inject-scanlines" />
+                {/* Glitch bars */}
+                <div className="absolute inset-0 inject-glitch" />
+
+                {/* Steps */}
+                <div className="relative z-10 text-left space-y-3 px-8">
+                  {INJECT_STEPS.map((step, i) => (
+                    <p
+                      key={step}
+                      className="text-[11px] tracking-[3px] font-light transition-all duration-300"
+                      style={{
+                        color:
+                          i <= currentStep
+                            ? "var(--vault-cyan)"
+                            : "rgba(255,255,255,0.08)",
+                        opacity: i <= currentStep ? 1 : 0.3,
+                        textShadow:
+                          i === currentStep
+                            ? "0 0 10px var(--vault-cyan), 0 0 30px var(--vault-cyan)"
+                            : "none",
+                        transform:
+                          i === currentStep
+                            ? `translateX(${Math.random() > 0.5 ? 1 : -1}px)`
+                            : "none",
+                      }}
+                    >
+                      {i < currentStep ? "■" : i === currentStep ? "▸" : "·"}{" "}
+                      {step}
+                    </p>
+                  ))}
+                </div>
+
+                {/* Status text */}
+                <p className="relative z-10 text-[12px] tracking-[6px] font-light inject-flicker"
+                   style={{ color: "var(--vault-cyan)" }}>
+                  INJECTING
+                </p>
+
+              </div>
+            ) : resultUrl?.startsWith("data:") ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={resultUrl}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  draggable={false}
+                />
+                {/* Transparent overlay to block long-press / right-click save */}
+                <div
+                  className="absolute inset-0"
+                  onContextMenu={(e) => e.preventDefault()}
+                />
+              </>
+            ) : (
+              <Image
+                src={resultUrl || image.file}
+                alt=""
+                fill
+                className="object-cover"
+              />
+            )}
+          </div>
+
+          {/* Controls */}
+          <div className="p-6 space-y-6">
+            {state === "select" && (
+              <>
+                {/* Generation counter */}
+                <div className="text-center">
+                  <span className="text-[10px] tracking-[3px] text-white/30 font-light">
+                    {remaining > 0
+                      ? t("implant.remaining", { n: remaining })
+                      : user
+                        ? t("implant.noRemaining")
+                        : t("implant.signUpMore")}
+                  </span>
+                </div>
+
+                {/* Entity selection */}
+                <div className="relative">
+                  <p className="text-[10px] tracking-[4px] text-white/40 font-light mb-3">
+                    SELECT ENTITY
+                  </p>
+                  <div className="flex gap-2 overflow-x-auto pb-2 relative">
+                    {entities.map((entity) => (
+                      <button
+                        key={entity.id}
+                        onClick={() => {
+                          setSelectedEntity(entity);
+                          setUserPhoto(null);
+                          setPreviewEntity(null);
+                        }}
+                        onMouseEnter={() => setPreviewEntity(entity)}
+                        onMouseLeave={() => setPreviewEntity(null)}
+                        onTouchStart={() => {
+                          longPressTimer.current = setTimeout(() => setPreviewEntity(entity), 300);
+                        }}
+                        onTouchEnd={() => {
+                          if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                          setPreviewEntity(null);
+                        }}
+                        className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 transition-colors"
+                        style={{
+                          borderColor:
+                            selectedEntity?.id === entity.id
+                              ? "var(--vault-cyan)"
+                              : "rgba(255,255,255,0.1)",
+                        }}
+                      >
+                        <Image
+                          src={entity.thumbnailUrl}
+                          alt={entity.name}
+                          width={48}
+                          height={48}
+                          className="object-cover w-full h-full"
+                        />
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Entity preview popup */}
+                  {previewEntity && (
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 z-10 pointer-events-none">
+                      <div className="w-36 h-36 rounded-xl overflow-hidden border border-white/20 shadow-2xl bg-black">
+                        <Image
+                          src={previewEntity.referenceUrl}
+                          alt={previewEntity.name}
+                          width={144}
+                          height={144}
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                      <p className="text-center text-[9px] tracking-[2px] text-white/40 font-light mt-1">
+                        {previewEntity.name}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Divider */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-[1px] bg-white/10" />
+                  <span className="text-[10px] tracking-[2px] text-white/20">
+                    or
+                  </span>
+                  <div className="flex-1 h-[1px] bg-white/10" />
+                </div>
+
+                {/* User photo upload */}
+                <label className="flex items-center justify-center gap-2 py-3 border border-white/10 rounded-lg cursor-pointer hover:border-white/25 transition-colors">
+                  <span className="text-[11px] tracking-[3px] text-white/50 font-light">
+                    {userPhoto ? "PHOTO LOADED" : "+ YOUR PHOTO"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleUserPhoto}
+                    className="hidden"
+                  />
+                </label>
+
+                {/* Error message */}
+                {error && (
+                  <p className="text-[11px] tracking-[1px] text-red-400/80 font-light text-center">
+                    {error}
+                  </p>
+                )}
+
+                {/* INJECT button */}
+                <button
+                  onClick={handleImplant}
+                  disabled={!selectedEntity && !userPhoto}
+                  className="w-full py-4 text-[13px] tracking-[6px] font-light transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed"
+                  style={{
+                    background:
+                      selectedEntity || userPhoto
+                        ? "linear-gradient(135deg, var(--vault-cyan) 0%, #0088aa 100%)"
+                        : "rgba(255,255,255,0.05)",
+                    color:
+                      selectedEntity || userPhoto
+                        ? "#000"
+                        : "rgba(255,255,255,0.2)",
+                  }}
+                >
+                  INJECT
+                </button>
+              </>
+            )}
+
+            {state === "result" && (
+              <div>
+                <button
+                  onClick={handleExport}
+                  className="w-full py-3 text-[11px] tracking-[4px] font-light border border-[var(--vault-cyan)]/30 hover:border-[var(--vault-cyan)]/60 text-[var(--vault-cyan)] transition-colors"
+                >
+                  EXPORT
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <style jsx>{`
+          @keyframes slide-up {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
+          .animate-slide-up {
+            animation: slide-up 0.3s ease-out;
+          }
+          @keyframes noise {
+            0%, 100% { background-position: 0 0; }
+            10% { background-position: -5% -10%; }
+            20% { background-position: -15% 5%; }
+            30% { background-position: 7% -25%; }
+            40% { background-position: -5% 25%; }
+            50% { background-position: -15% 10%; }
+            60% { background-position: 15% 0%; }
+            70% { background-position: 0% 15%; }
+            80% { background-position: 3% -10%; }
+            90% { background-position: -10% 10%; }
+          }
+          .inject-noise {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
+            animation: noise 0.15s infinite steps(5);
+            opacity: 0.6;
+            mix-blend-mode: overlay;
+          }
+          @keyframes scanlines {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+          }
+          .inject-scanlines {
+            background: repeating-linear-gradient(
+              0deg, transparent, transparent 2px,
+              rgba(0, 212, 255, 0.03) 2px, rgba(0, 212, 255, 0.03) 4px
+            );
+            animation: scanlines 3s linear infinite;
+          }
+          @keyframes glitch {
+            0%, 95%, 100% { opacity: 0; }
+            96% {
+              opacity: 1; transform: translateX(-20px);
+              clip-path: inset(20% 0 60% 0);
+              background: rgba(0, 212, 255, 0.08);
+            }
+            97% {
+              opacity: 1; transform: translateX(15px);
+              clip-path: inset(50% 0 20% 0);
+              background: rgba(0, 212, 255, 0.05);
+            }
+            98% { opacity: 0; }
+          }
+          .inject-glitch {
+            animation: glitch 2s infinite;
+          }
+          @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            5% { opacity: 0.2; }
+            10% { opacity: 1; }
+            50% { opacity: 0.8; }
+            55% { opacity: 0.3; }
+            57% { opacity: 1; }
+          }
+          .inject-flicker {
+            animation: flicker 1.5s infinite;
+          }
+        `}</style>
+      </div>
+
+      {/* Auth Modal — shown above implant modal */}
+      <AuthModal
+        open={showAuth}
+        onClose={() => setShowAuth(false)}
+        onSuccess={() => {
+          setShowAuth(false);
+        }}
+      />
+
+      <CreditSheet
+        open={showCredits}
+        onClose={() => setShowCredits(false)}
+      />
+    </>
+  );
+}
