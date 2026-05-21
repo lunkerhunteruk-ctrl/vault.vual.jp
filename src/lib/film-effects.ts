@@ -6,12 +6,12 @@
  * Flare:          40% none, 20% low, 20% mid, 20% high
  */
 
-function pickIntensity(): number {
+function pickFlareIntensity(): number {
   const r = Math.random();
-  if (r < 0.4) return 0;       // none
-  if (r < 0.6) return 1;       // low
-  if (r < 0.8) return 2;       // mid
-  return 3;                     // high
+  if (r < 0.3) return 0;       // none 30%
+  if (r < 0.6) return 1;       // low 30%
+  if (r < 0.8) return 2;       // mid 20%
+  return 3;                     // high 20%
 }
 
 function addLightLeak(ctx: CanvasRenderingContext2D, w: number, h: number, multiplier: number) {
@@ -221,8 +221,8 @@ export function applyFilmEffects(
       const w = canvas.width;
       const h = canvas.height;
 
-      // Flare (40% none, 20% low, 20% mid, 20% high)
-      const flareLevel = pickIntensity();
+      // Flare (30% none, 30% low, 20% mid, 20% high)
+      const flareLevel = pickFlareIntensity();
       if (flareLevel > 0) {
         const multiplier = [0, 0.5, 1.0, 1.4][flareLevel];
         addLightLeak(ctx, w, h, multiplier);
