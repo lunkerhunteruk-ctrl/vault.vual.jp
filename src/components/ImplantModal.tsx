@@ -9,7 +9,7 @@ import { CreditSheet } from "./CreditSheet";
 import { t } from "@/lib/i18n";
 import { applyFilmEffects } from "@/lib/film-effects";
 import { ShuffleText } from "./ShuffleText";
-import { decrementInjection, lookFileToId, getRemainingInjections } from "@/lib/injection-count";
+import { decrementInjection, lookFileToId, getInjectionInfo } from "@/lib/injection-count";
 
 interface ImplantModalProps {
   image: (VaultMedia & { locationId: string }) | null;
@@ -41,6 +41,7 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
   const [height, setHeight] = useState(170);
   const [previewEntity, setPreviewEntity] = useState<VaultEntity | null>(null);
   const [sceneRemaining, setSceneRemaining] = useState<number | null>(null);
+  const [sceneInitial, setSceneInitial] = useState<number>(0);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const user = useVaultStore((s) => s.user);
@@ -48,11 +49,14 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
   const incrementGeneration = useVaultStore((s) => s.incrementGeneration);
   const totalRemaining = useVaultStore((s) => s.totalRemaining);
 
-  // Fetch scene remaining injections when image changes
+  // Fetch scene injection info when image changes
   useEffect(() => {
     if (image) {
       const lookId = lookFileToId(image.file);
-      getRemainingInjections(lookId).then(setSceneRemaining);
+      getInjectionInfo(lookId).then(({ remaining, initial }) => {
+        setSceneRemaining(remaining);
+        setSceneInitial(initial);
+      });
     }
   }, [image]);
 
@@ -130,10 +134,12 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
         const city = themeCity || "VAULT";
 
         // Apply random film effects (flare + leak + edge print)
-        const total = totalLooks || 12;
+        // Edition number: initial - remaining = how many have been made
+        // e.g. initial=12, remaining after this inject=10 → this is edition 2/12
+        const editionNum = sceneInitial - (sceneRemaining ?? sceneInitial) + 1;
         const withEffects = await applyFilmEffects(data.resultImage, {
           title: `${city}  ${filmDate}`,
-          lot: `INJ.${lookNum.padStart(3, "0")}/${String(total).padStart(3, "0")}`,
+          lot: `${String(editionNum).padStart(3, "0")}/${String(sceneInitial).padStart(3, "0")}`,
         });
         setState("result");
         setResultUrl(withEffects);

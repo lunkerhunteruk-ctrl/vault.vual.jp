@@ -34,6 +34,20 @@ export async function getRemainingInjections(lookId: string): Promise<number> {
   return initial;
 }
 
+// Get remaining + initial for edition numbering
+export async function getInjectionInfo(lookId: string): Promise<{ remaining: number; initial: number }> {
+  if (!db) return { remaining: 0, initial: 0 };
+  const ref = doc(db, 'injection_counts', lookId);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    const data = snap.data();
+    return { remaining: data.remaining ?? 0, initial: data.initial ?? data.remaining ?? 0 };
+  }
+  const initial = seededInitialCount(lookId);
+  await setDoc(ref, { remaining: initial, initial, createdAt: new Date() });
+  return { remaining: initial, initial };
+}
+
 // Get remaining for multiple looks at once
 export async function getBatchRemainingInjections(lookIds: string[]): Promise<Record<string, number>> {
   if (!db) return {};
