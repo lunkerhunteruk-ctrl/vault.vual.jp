@@ -182,9 +182,12 @@ export default function AdminPage() {
       )}
 
       {/* Users */}
-      <h2 className="text-[14px] tracking-[6px] text-white/40 font-light mt-12 mb-6">
+      <h2 className="text-[14px] tracking-[6px] text-white/40 font-light mt-12 mb-2">
         USERS — CREDITS
       </h2>
+      <p className="text-[11px] tracking-[2px] text-white/20 font-light mb-6">
+        TOTAL ACCOUNTS: <span style={{ color: "var(--vault-cyan)" }}>{users.length}</span>
+      </p>
 
       <div className="space-y-2 max-w-2xl">
         {users.map((user) => (
