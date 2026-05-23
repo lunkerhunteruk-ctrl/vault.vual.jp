@@ -95,21 +95,80 @@ function rowSpanForAspect(aspect: string, colSpan: number): number {
   return Math.round(colSpan * (3 * h) / (4 * w));
 }
 
-function layoutFallback(media: { aspect: string }[]): PlacedCell[] {
+// Dynamic Mondrian layout for any number of mixed-AR images
+function layoutMondrian(media: { aspect: string; type: string }[]): PlacedCell[] {
   const placements: PlacedCell[] = [];
+  const items = [...media];
   let row = 1;
-  for (let i = 0; i < media.length; i += 2) {
-    const span = rowSpanForAspect(media[i].aspect, 6);
-    placements.push({ colStart: 1, colEnd: 7, rowStart: row, rowEnd: row + span });
-    if (i + 1 < media.length) {
-      const span2 = rowSpanForAspect(media[i + 1].aspect, 6);
-      placements.push({ colStart: 7, colEnd: 13, rowStart: row, rowEnd: row + span2 });
-      row += Math.max(span, span2);
-    } else {
-      row += span;
+  let i = 0;
+
+  while (i < items.length) {
+    const remaining = items.length - i;
+
+    if (remaining >= 3) {
+      // Try: 1 large (6col) + 2 small stacked (3col+3col) or (6col)
+      const a = items[i];
+      const b = items[i + 1];
+      const c = items[i + 2];
+
+      const spanA = rowSpanForAspect(a.aspect, 6);
+      const spanB = rowSpanForAspect(b.aspect, 3);
+      const spanC = rowSpanForAspect(c.aspect, 3);
+
+      // Check if 2 small ones can stack beside the large one
+      if (Math.abs(spanA - (spanB + spanC)) <= 1) {
+        // Large left, 2 small stacked right
+        placements.push({ colStart: 1, colEnd: 7, rowStart: row, rowEnd: row + spanA });
+        placements.push({ colStart: 7, colEnd: 10, rowStart: row, rowEnd: row + spanB });
+        placements.push({ colStart: 10, colEnd: 13, rowStart: row, rowEnd: row + spanB + spanC });
+        // fill gap if small stack is shorter
+        row += spanA;
+        i += 3;
+        continue;
+      }
+
+      // Alt: try 1 wide (12col) + 2 half (6col+6col)
+      const spanWide = rowSpanForAspect(a.aspect, 12);
+      if (spanWide <= 4) {
+        // Wide cinematic on top
+        placements.push({ colStart: 1, colEnd: 13, rowStart: row, rowEnd: row + spanWide });
+        row += spanWide;
+        const spanB6 = rowSpanForAspect(b.aspect, 6);
+        const spanC6 = rowSpanForAspect(c.aspect, 6);
+        placements.push({ colStart: 1, colEnd: 7, rowStart: row, rowEnd: row + spanB6 });
+        placements.push({ colStart: 7, colEnd: 13, rowStart: row, rowEnd: row + spanC6 });
+        row += Math.max(spanB6, spanC6);
+        i += 3;
+        continue;
+      }
     }
+
+    if (remaining >= 2) {
+      // 2 side by side (6col each)
+      const a = items[i];
+      const b = items[i + 1];
+      const spanA = rowSpanForAspect(a.aspect, 6);
+      const spanB = rowSpanForAspect(b.aspect, 6);
+      placements.push({ colStart: 1, colEnd: 7, rowStart: row, rowEnd: row + spanA });
+      placements.push({ colStart: 7, colEnd: 13, rowStart: row, rowEnd: row + spanB });
+      row += Math.max(spanA, spanB);
+      i += 2;
+      continue;
+    }
+
+    // Single remaining: full width or half
+    const a = items[i];
+    const spanA = rowSpanForAspect(a.aspect, 6);
+    placements.push({ colStart: 1, colEnd: 7, rowStart: row, rowEnd: row + spanA });
+    row += spanA;
+    i += 1;
   }
+
   return placements;
+}
+
+function layoutFallback(media: { aspect: string }[]): PlacedCell[] {
+  return layoutMondrian(media.map(m => ({ ...m, type: "image" })));
 }
 
 interface MondrianGridProps {
@@ -134,7 +193,7 @@ export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGrid
   } else if (!hasVideo && imageCount === 4) {
     placements = layout4Images();
   } else {
-    placements = layoutFallback(media.map((m) => ({ aspect: m.aspect })));
+    placements = layoutMondrian(media.map((m) => ({ aspect: m.aspect, type: m.type })));
   }
 
   const maxRow = Math.max(...placements.map((p) => p.rowEnd)) - 1;
