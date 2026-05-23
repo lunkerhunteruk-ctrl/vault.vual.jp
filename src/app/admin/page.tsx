@@ -92,7 +92,7 @@ export default function AdminPage() {
   if (!authorized) return <div className="min-h-screen bg-[#0a0a0a]" />;
   if (loading) return <div className="p-8 text-white/40">Loading...</div>;
 
-  const sorted = Object.entries(counts).sort(([a], [b]) => b.localeCompare(a)).slice(0, 6);
+  const sorted = Object.entries(counts).sort(([a], [b]) => b.localeCompare(a));
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white p-8">
