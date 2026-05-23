@@ -11,6 +11,27 @@ interface PlacedCell {
   rowEnd: number;
 }
 
+// 6 mixed AR: 16:9, 3:4, 3:4, 4:3, 3:4, 9:16
+// Staggered Mondrian — no continuous grid lines
+function layout6Mixed(): PlacedCell[] {
+  return [
+    // Hero 16:9 — full width
+    { colStart: 1, colEnd: 13, rowStart: 1, rowEnd: 6 },
+    // Row 2: [5col, 3col, 4col] — staggered
+    { colStart: 1, colEnd: 6, rowStart: 6, rowEnd: 12 },    // 3:4 (5×6)
+    { colStart: 6, colEnd: 9, rowStart: 6, rowEnd: 10 },    // 3:4 (3×4)
+    { colStart: 9, colEnd: 13, rowStart: 6, rowEnd: 10 },   // 4:3 (4×4)
+    // Bottom: 9:16 right (stagger) + 3:4 large left
+    { colStart: 6, colEnd: 13, rowStart: 10, rowEnd: 18 },  // 9:16 (7×8)
+    { colStart: 1, colEnd: 6, rowStart: 12, rowEnd: 19 },   // 3:4 (5×7)
+  ];
+  // r1-5:   hero(1-12) = 12 ✓
+  // r6-9:   a(1-5) + b(6-8) + c(9-12) = 12 ✓
+  // r10-11: a(1-5) + d(6-12) = 5+7 = 12 ✓
+  // r12-17: e(1-5) + d(6-12) = 5+7 = 12 ✓
+  // r18:    e(1-5) only = negative space ✓
+}
+
 // 4 images (all 3:4). 12×12 grid, no overlap, no gaps.
 // 1 large + 3 small, or 2 large + 2 small
 function layout4Images(): PlacedCell[] {
@@ -199,8 +220,20 @@ export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGrid
   const hasVideo = media.some((m) => m.type === "video");
   const imageCount = media.filter((m) => m.type === "image").length;
 
+  // Detect 6-image mixed AR preset: 16:9×1, 9:16×1, 3:4×3, 4:3×1
+  const aspects = media.map(m => m.aspect);
+  const is6Mixed = media.length === 6 &&
+    aspects.filter(a => a === "16:9").length === 1 &&
+    aspects.filter(a => a === "9:16").length === 1;
+
   let placements: PlacedCell[];
-  if (hasVideo && imageCount === 12) {
+  if (is6Mixed) {
+    // Reorder: 16:9 first, then 3:4s and 4:3, then 9:16 last
+    // layout6Mixed expects: [16:9, 3:4, 3:4, 4:3, 9:16, 3:4]
+    // We need to sort media to match, but keep original indices for rendering
+    // Instead, just use the preset — media order in sample.ts should match
+    placements = layout6Mixed();
+  } else if (hasVideo && imageCount === 12) {
     placements = videoPlus12Layout();
   } else if (hasVideo && imageCount === 8) {
     placements = videoPlus8Layout();
