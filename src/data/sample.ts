@@ -6,6 +6,36 @@ const STREAM_SHOW01_ID = "96e6e49bcca584d5aba84bc0601de375";
 
 export const sampleThemes: VaultTheme[] = [
   {
+    id: "2026-05-23-shibuya-gamecenter",
+    date: "5.23",
+    city: "SHIBUYA — GAME CENTER",
+    locations: [
+      {
+        id: "gamecenter",
+        name: "GAME CENTER",
+        implantPrompt: "とうきょう しぶや ゲームセンター",
+        film: "leicaPortra800",
+        media: [
+          { file: `${R2_BASE}/23-05-2026/look1.jpg`, type: "image", aspect: "3:4", isHero: true },
+          { file: `${R2_BASE}/23-05-2026/look2.jpg`, type: "image", aspect: "3:4" },
+          { file: `${R2_BASE}/23-05-2026/look3.jpg`, type: "image", aspect: "16:9" },
+          { file: `${R2_BASE}/23-05-2026/look4.jpg`, type: "image", aspect: "4:3" },
+          { file: `${R2_BASE}/23-05-2026/look5.jpg`, type: "image", aspect: "3:4" },
+          { file: `${R2_BASE}/23-05-2026/look6.jpg`, type: "image", aspect: "4:3" },
+          { file: `${R2_BASE}/23-05-2026/look7.jpg`, type: "image", aspect: "16:9" },
+          { file: `${R2_BASE}/23-05-2026/look8.jpg`, type: "image", aspect: "4:3" },
+          { file: `${R2_BASE}/23-05-2026/look9.jpg`, type: "image", aspect: "4:3" },
+          { file: `${R2_BASE}/23-05-2026/look10.jpg`, type: "image", aspect: "3:4" },
+          { file: `${R2_BASE}/23-05-2026/look11.jpg`, type: "image", aspect: "16:9" },
+          { file: `${R2_BASE}/23-05-2026/look12.jpg`, type: "image", aspect: "4:3" },
+          { file: `${R2_BASE}/23-05-2026/look13.jpg`, type: "image", aspect: "4:3" },
+          { file: `${R2_BASE}/23-05-2026/look14.jpg`, type: "image", aspect: "3:4" },
+          { file: `${R2_BASE}/23-05-2026/look15.jpg`, type: "image", aspect: "9:16" },
+        ],
+      },
+    ],
+  },
+  {
     id: "2026-05-20-shibuya",
     date: "5.20",
     city: "SHIBUYA",
