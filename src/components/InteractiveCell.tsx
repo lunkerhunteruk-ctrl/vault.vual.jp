@@ -16,12 +16,14 @@ interface InteractiveCellProps {
 export function InteractiveCell({ item, isVideo, style, onImageClick, onVideoClick }: InteractiveCellProps) {
   const cellRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [parallaxY, setParallaxY] = useState(0);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
-  // Scroll fade-in
+  // Scroll fade-in + parallax
   useEffect(() => {
     const el = cellRef.current;
     if (!el) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -32,21 +34,24 @@ export function InteractiveCell({ item, isVideo, style, onImageClick, onVideoCli
       { threshold: 0.15, rootMargin: "50px 0px" }
     );
     observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
 
-  // Gyroscope (mobile) — subtle image shift
-  useEffect(() => {
-    if (typeof window === "undefined" || !("DeviceOrientationEvent" in window)) return;
-
-    const handler = (e: DeviceOrientationEvent) => {
-      const x = Math.max(-1, Math.min(1, (e.gamma || 0) / 30));
-      const y = Math.max(-1, Math.min(1, (e.beta || 0) / 30));
-      setTilt({ x: x * 3, y: y * 3 });
+    const handleScroll = () => {
+      const rect = el.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      // How far through the viewport: 0 = bottom edge, 1 = top edge
+      const progress = (viewH - rect.top) / (viewH + rect.height);
+      // Map to -8px to +8px parallax
+      const offset = (progress - 0.5) * 16;
+      setParallaxY(offset);
     };
 
-    window.addEventListener("deviceorientation", handler, { passive: true });
-    return () => window.removeEventListener("deviceorientation", handler);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   // Mouse move (PC) — subtle image shift
@@ -87,7 +92,7 @@ export function InteractiveCell({ item, isVideo, style, onImageClick, onVideoCli
           <div
             className="absolute inset-[-8px] transition-transform duration-200 ease-out"
             style={{
-              transform: `translate(${tilt.x}px, ${tilt.y}px) scale(1.03)`,
+              transform: `translate(${tilt.x}px, ${tilt.y + parallaxY}px) scale(1.03)`,
             }}
           >
             <Image
