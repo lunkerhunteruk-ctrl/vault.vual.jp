@@ -128,8 +128,8 @@ function layoutMondrian(media: { aspect: string; type: string }[]): PlacedCell[]
   while (i < media.length) {
     const remaining = media.length - i;
 
-    // Try 3-column layout for 3+ items where at least one is wide (16:9 or 4:3)
-    if (remaining >= 3 && (media[i].aspect === "16:9" || media[i].aspect === "4:3")) {
+    // Full width only for 16:9
+    if (remaining >= 3 && media[i].aspect === "16:9") {
       // Wide image full width, then 2 below with staggered split
       const spanWide = rowSpanForAspect(media[i].aspect, 12);
       placements.push({ colStart: 1, colEnd: 13, rowStart: row, rowEnd: row + spanWide });
