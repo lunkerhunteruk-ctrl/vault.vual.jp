@@ -6,9 +6,9 @@ const STREAM_SHOW01_ID = "96e6e49bcca584d5aba84bc0601de375";
 
 export const sampleThemes: VaultTheme[] = [
   {
-    id: "2026-05-23-shibuya-gamecenter",
+    id: "2026-05-23-shinjuku-gamecenter",
     date: "5.23",
-    city: "SHIBUYA — GAME CENTER",
+    city: "SHINJUKU — GAME CENTER",
     locations: [
       {
         id: "gamecenter",
