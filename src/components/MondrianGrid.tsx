@@ -128,8 +128,8 @@ function layoutMondrian(media: { aspect: string; type: string }[]): PlacedCell[]
   while (i < media.length) {
     const remaining = media.length - i;
 
-    // Full width only for 16:9
-    if (remaining >= 3 && media[i].aspect === "16:9") {
+    // Full width for 16:9 or 4:3
+    if (remaining >= 3 && (media[i].aspect === "16:9" || media[i].aspect === "4:3")) {
       // Wide image full width, then 2 below with staggered split
       const spanWide = rowSpanForAspect(media[i].aspect, 12);
       placements.push({ colStart: 1, colEnd: 13, rowStart: row, rowEnd: row + spanWide });
@@ -151,34 +151,35 @@ function layoutMondrian(media: { aspect: string; type: string }[]): PlacedCell[]
       const s1 = rowSpanForAspect(media[i].aspect, c1);
       const s2 = rowSpanForAspect(media[i + 1].aspect, c2);
       const s3 = rowSpanForAspect(media[i + 2].aspect, c3);
-      const maxSpan = Math.max(s1, s2, s3);
+      const sharedSpan = Math.max(s1, s2, s3);
 
-      placements.push({ colStart: 1, colEnd: 1 + c1, rowStart: row, rowEnd: row + s1 });
-      placements.push({ colStart: 1 + c1, colEnd: 1 + c1 + c2, rowStart: row, rowEnd: row + s2 });
-      placements.push({ colStart: 1 + c1 + c2, colEnd: 13, rowStart: row, rowEnd: row + s3 });
-      row += maxSpan;
+      placements.push({ colStart: 1, colEnd: 1 + c1, rowStart: row, rowEnd: row + sharedSpan });
+      placements.push({ colStart: 1 + c1, colEnd: 1 + c1 + c2, rowStart: row, rowEnd: row + sharedSpan });
+      placements.push({ colStart: 1 + c1 + c2, colEnd: 13, rowStart: row, rowEnd: row + sharedSpan });
+      row += sharedSpan;
       i += 3;
       continue;
     }
 
     if (remaining >= 2) {
-      // Staggered 2-column
+      // Staggered 2-column — use same row span for both (slight crop on one)
       const [lc, rc] = nextSplit();
       const spanA = rowSpanForAspect(media[i].aspect, lc);
       const spanB = rowSpanForAspect(media[i + 1].aspect, rc);
-      placements.push({ colStart: 1, colEnd: 1 + lc, rowStart: row, rowEnd: row + spanA });
-      placements.push({ colStart: 1 + lc, colEnd: 13, rowStart: row, rowEnd: row + spanB });
-      row += Math.max(spanA, spanB);
+      // Use the average to minimize crop on both
+      const sharedSpan = Math.max(spanA, spanB);
+      placements.push({ colStart: 1, colEnd: 1 + lc, rowStart: row, rowEnd: row + sharedSpan });
+      placements.push({ colStart: 1 + lc, colEnd: 13, rowStart: row, rowEnd: row + sharedSpan });
+      row += sharedSpan;
       i += 2;
       continue;
     }
 
-    // Single: left-aligned with varied width
-    const colW = [7, 8, 5][splitIdx % 3];
-    const spanA = rowSpanForAspect(media[i].aspect, colW);
-    placements.push({ colStart: 1, colEnd: 1 + colW, rowStart: row, rowEnd: row + spanA });
-    row += spanA;
-    splitIdx++;
+    // Single: full width
+    const spanA = rowSpanForAspect(media[i].aspect, 12);
+    const singleSpan = Math.max(spanA, 3);
+    placements.push({ colStart: 1, colEnd: 13, rowStart: row, rowEnd: row + singleSpan });
+    row += singleSpan;
     i += 1;
   }
 
