@@ -95,81 +95,96 @@ function rowSpanForAspect(aspect: string, colSpan: number): number {
   return Math.round(colSpan * (3 * h) / (4 * w));
 }
 
-// Dynamic Mondrian layout for any number of mixed-AR images
+// Dynamic Mondrian layout — staggered splits, no continuous grid lines
 function layoutMondrian(media: { aspect: string; type: string }[]): PlacedCell[] {
   const placements: PlacedCell[] = [];
-  const items = [...media];
   let row = 1;
   let i = 0;
 
-  while (i < items.length) {
-    const remaining = items.length - i;
+  // Split patterns that don't share a common center line
+  // [leftCols, rightCols] — must sum to 12
+  const splits: [number, number][] = [
+    [5, 7], [7, 5], [4, 8], [8, 4], [5, 7], [7, 5],
+  ];
+  // Triple splits
+  const tripleSplits: [number, number, number][] = [
+    [4, 4, 4], [3, 5, 4], [5, 3, 4], [4, 5, 3],
+  ];
 
+  let splitIdx = 0;
+
+  const nextSplit = (): [number, number] => {
+    const s = splits[splitIdx % splits.length];
+    splitIdx++;
+    return s;
+  };
+
+  const nextTriple = (): [number, number, number] => {
+    const s = tripleSplits[splitIdx % tripleSplits.length];
+    splitIdx++;
+    return s;
+  };
+
+  while (i < media.length) {
+    const remaining = media.length - i;
+
+    // Try 3-column layout for 3+ items where at least one is wide (16:9 or 4:3)
+    if (remaining >= 3 && (media[i].aspect === "16:9" || media[i].aspect === "4:3")) {
+      // Wide image full width, then 2 below with staggered split
+      const spanWide = rowSpanForAspect(media[i].aspect, 12);
+      placements.push({ colStart: 1, colEnd: 13, rowStart: row, rowEnd: row + spanWide });
+      row += spanWide;
+
+      const [lc, rc] = nextSplit();
+      const spanB = rowSpanForAspect(media[i + 1].aspect, lc);
+      const spanC = rowSpanForAspect(media[i + 2].aspect, rc);
+      placements.push({ colStart: 1, colEnd: 1 + lc, rowStart: row, rowEnd: row + spanB });
+      placements.push({ colStart: 1 + lc, colEnd: 13, rowStart: row, rowEnd: row + spanC });
+      row += Math.max(spanB, spanC);
+      i += 3;
+      continue;
+    }
+
+    // Try triple split for 3+ items
     if (remaining >= 3) {
-      // Try: 1 large (6col) + 2 small stacked (3col+3col) or (6col)
-      const a = items[i];
-      const b = items[i + 1];
-      const c = items[i + 2];
+      const [c1, c2, c3] = nextTriple();
+      const s1 = rowSpanForAspect(media[i].aspect, c1);
+      const s2 = rowSpanForAspect(media[i + 1].aspect, c2);
+      const s3 = rowSpanForAspect(media[i + 2].aspect, c3);
+      const maxSpan = Math.max(s1, s2, s3);
 
-      const spanA = rowSpanForAspect(a.aspect, 6);
-      const spanB = rowSpanForAspect(b.aspect, 3);
-      const spanC = rowSpanForAspect(c.aspect, 3);
-
-      // Check if 2 small ones can stack beside the large one
-      if (Math.abs(spanA - (spanB + spanC)) <= 1) {
-        // Large left, 2 small stacked right
-        placements.push({ colStart: 1, colEnd: 7, rowStart: row, rowEnd: row + spanA });
-        placements.push({ colStart: 7, colEnd: 10, rowStart: row, rowEnd: row + spanB });
-        placements.push({ colStart: 10, colEnd: 13, rowStart: row, rowEnd: row + spanB + spanC });
-        // fill gap if small stack is shorter
-        row += spanA;
-        i += 3;
-        continue;
-      }
-
-      // Alt: try 1 wide (12col) + 2 half (6col+6col)
-      const spanWide = rowSpanForAspect(a.aspect, 12);
-      if (spanWide <= 4) {
-        // Wide cinematic on top
-        placements.push({ colStart: 1, colEnd: 13, rowStart: row, rowEnd: row + spanWide });
-        row += spanWide;
-        const spanB6 = rowSpanForAspect(b.aspect, 6);
-        const spanC6 = rowSpanForAspect(c.aspect, 6);
-        placements.push({ colStart: 1, colEnd: 7, rowStart: row, rowEnd: row + spanB6 });
-        placements.push({ colStart: 7, colEnd: 13, rowStart: row, rowEnd: row + spanC6 });
-        row += Math.max(spanB6, spanC6);
-        i += 3;
-        continue;
-      }
+      placements.push({ colStart: 1, colEnd: 1 + c1, rowStart: row, rowEnd: row + s1 });
+      placements.push({ colStart: 1 + c1, colEnd: 1 + c1 + c2, rowStart: row, rowEnd: row + s2 });
+      placements.push({ colStart: 1 + c1 + c2, colEnd: 13, rowStart: row, rowEnd: row + s3 });
+      row += maxSpan;
+      i += 3;
+      continue;
     }
 
     if (remaining >= 2) {
-      // 2 side by side (6col each)
-      const a = items[i];
-      const b = items[i + 1];
-      const spanA = rowSpanForAspect(a.aspect, 6);
-      const spanB = rowSpanForAspect(b.aspect, 6);
-      placements.push({ colStart: 1, colEnd: 7, rowStart: row, rowEnd: row + spanA });
-      placements.push({ colStart: 7, colEnd: 13, rowStart: row, rowEnd: row + spanB });
+      // Staggered 2-column
+      const [lc, rc] = nextSplit();
+      const spanA = rowSpanForAspect(media[i].aspect, lc);
+      const spanB = rowSpanForAspect(media[i + 1].aspect, rc);
+      placements.push({ colStart: 1, colEnd: 1 + lc, rowStart: row, rowEnd: row + spanA });
+      placements.push({ colStart: 1 + lc, colEnd: 13, rowStart: row, rowEnd: row + spanB });
       row += Math.max(spanA, spanB);
       i += 2;
       continue;
     }
 
-    // Single remaining: full width or half
-    const a = items[i];
-    const spanA = rowSpanForAspect(a.aspect, 6);
-    placements.push({ colStart: 1, colEnd: 7, rowStart: row, rowEnd: row + spanA });
+    // Single: left-aligned with varied width
+    const colW = [7, 8, 5][splitIdx % 3];
+    const spanA = rowSpanForAspect(media[i].aspect, colW);
+    placements.push({ colStart: 1, colEnd: 1 + colW, rowStart: row, rowEnd: row + spanA });
     row += spanA;
+    splitIdx++;
     i += 1;
   }
 
   return placements;
 }
 
-function layoutFallback(media: { aspect: string }[]): PlacedCell[] {
-  return layoutMondrian(media.map(m => ({ ...m, type: "image" })));
-}
 
 interface MondrianGridProps {
   media: (VaultMedia & { locationId: string })[];
