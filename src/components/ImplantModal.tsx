@@ -335,21 +335,34 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
             {state === "select" && (
               <>
                 {/* Scene injection count */}
-                <div className="text-center">
-                  {sceneCorrupted ? (
-                    <span className="text-[9px] tracking-[2px] font-light text-red-500/50">
-                      SCENE CORRUPTED — NO INJECTIONS AVAILABLE
-                    </span>
-                  ) : (
-                    <div className="flex items-center justify-center gap-3">
-                      <span className="text-[9px] tracking-[2px] font-light text-white/20">
-                        INJECTIONS REMAINING
+                <div className="flex items-center justify-between">
+                  <div className="flex-1" />
+                  <div className="flex items-center gap-3">
+                    {sceneCorrupted ? (
+                      <span className="text-[9px] tracking-[2px] font-light text-red-500/50">
+                        SCENE CORRUPTED
                       </span>
-                      <span className="text-[24px] font-light tabular-nums" style={{ color: "var(--vault-cyan)", opacity: 0.6 }}>
-                        {sceneRemaining ?? "—"}
-                      </span>
-                    </div>
-                  )}
+                    ) : (
+                      <>
+                        <span className="text-[9px] tracking-[2px] font-light text-white/20">
+                          INJECTIONS REMAINING
+                        </span>
+                        <span className="text-[24px] font-light tabular-nums" style={{ color: "var(--vault-cyan)", opacity: 0.6 }}>
+                          {sceneRemaining ?? "—"}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex-1 flex justify-end">
+                    <button
+                      onClick={handleClose}
+                      className="w-7 h-7 rounded-full border border-white/15 flex items-center justify-center hover:border-white/30 transition-colors cursor-pointer"
+                    >
+                      <svg width="10" height="10" viewBox="0 0 10 10" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" fill="none">
+                        <path d="M1 1l8 8M9 1l-8 8" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Height selector */}
