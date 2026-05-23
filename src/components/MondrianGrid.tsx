@@ -1,9 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
 import { VaultMedia } from "@/data/types";
-import { HlsVideo } from "./HlsVideo";
+import { InteractiveCell } from "./InteractiveCell";
 
 interface PlacedCell {
   colStart: number;
@@ -154,38 +153,17 @@ export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGrid
         const isVideo = item.type === "video";
 
         return (
-          <div key={i} style={{
-            gridColumn: `${p.colStart} / ${p.colEnd}`,
-            gridRow: `${p.rowStart} / ${p.rowEnd}`,
-          }}>
-            <div
-              className="relative overflow-hidden cursor-pointer group h-full"
-              onClick={() => isVideo ? onVideoClick(item.file) : onImageClick(item)}
-            >
-              {isVideo ? (
-                <HlsVideo
-                  src={item.file}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              ) : (
-                <Image
-                  src={item.file}
-                  alt=""
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  loading="lazy"
-                />
-              )}
-              {!isVideo && (
-                <div className="absolute inset-0 transition-all duration-300 group-hover:[box-shadow:inset_0_0_0_1.5px_rgba(0,212,255,0.5)]" />
-              )}
-            </div>
-          </div>
+          <InteractiveCell
+            key={i}
+            item={item}
+            isVideo={isVideo}
+            style={{
+              gridColumn: `${p.colStart} / ${p.colEnd}`,
+              gridRow: `${p.rowStart} / ${p.rowEnd}`,
+            }}
+            onImageClick={() => onImageClick(item)}
+            onVideoClick={() => onVideoClick(item.file)}
+          />
         );
       })}
     </div>
