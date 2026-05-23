@@ -23,13 +23,13 @@ function layout6Mixed(): PlacedCell[] {
     { colStart: 9, colEnd: 13, rowStart: 6, rowEnd: 10 },   // 4:3 (4×4)
     // Bottom: 9:16 right (stagger) + 3:4 large left
     { colStart: 6, colEnd: 13, rowStart: 10, rowEnd: 18 },  // 9:16 (7×8)
-    { colStart: 1, colEnd: 6, rowStart: 12, rowEnd: 19 },   // 3:4 (5×7)
+    { colStart: 1, colEnd: 6, rowStart: 12, rowEnd: 18 },   // 3:4 (5×6)
   ];
   // r1-5:   hero(1-12) = 12 ✓
   // r6-9:   a(1-5) + b(6-8) + c(9-12) = 12 ✓
   // r10-11: a(1-5) + d(6-12) = 5+7 = 12 ✓
   // r12-17: e(1-5) + d(6-12) = 5+7 = 12 ✓
-  // r18:    e(1-5) only = negative space ✓
+  // NO GAPS ✓
 }
 
 // 4 images (all 3:4). 12×12 grid, no overlap, no gaps.
