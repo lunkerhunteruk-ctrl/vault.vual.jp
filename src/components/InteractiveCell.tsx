@@ -15,15 +15,14 @@ interface InteractiveCellProps {
 
 export function InteractiveCell({ item, isVideo, style, onImageClick, onVideoClick }: InteractiveCellProps) {
   const cellRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [parallaxY, setParallaxY] = useState(0);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
-  // Scroll fade-in + parallax
+  // Scroll fade-in
   useEffect(() => {
     const el = cellRef.current;
     if (!el) return;
-
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -34,25 +33,28 @@ export function InteractiveCell({ item, isVideo, style, onImageClick, onVideoCli
       { threshold: 0.15, rootMargin: "50px 0px" }
     );
     observer.observe(el);
-
-    const handleScroll = () => {
-      const rect = el.getBoundingClientRect();
-      const viewH = window.innerHeight;
-      // How far through the viewport: 0 = bottom edge, 1 = top edge
-      const progress = (viewH - rect.top) / (viewH + rect.height);
-      // Map to -8px to +8px parallax
-      const offset = (progress - 0.5) * 16;
-      setParallaxY(offset);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => observer.disconnect();
   }, []);
+
+  // Cell breathing — each cell pulses independently
+  useEffect(() => {
+    if (isVideo) return;
+    const el = imgRef.current;
+    if (!el) return;
+
+    // Seeded random per cell for unique timing
+    const seed = style.gridColumn?.toString().charCodeAt(0) || 0;
+    const duration = 8 + (seed % 7); // 8-14s per cycle
+    const delay = (seed * 1.3) % 5; // 0-5s stagger
+    // Random origin point for zoom direction
+    const origins = ["30% 30%", "70% 30%", "30% 70%", "70% 70%", "50% 40%", "40% 60%"];
+    const origin = origins[seed % origins.length];
+
+    el.style.transformOrigin = origin;
+    el.style.animation = `cellBreathe ${duration}s ease-in-out ${delay}s infinite`;
+
+    return () => { el.style.animation = ""; };
+  }, [isVideo, style]);
 
   // Mouse move (PC) — subtle image shift
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -90,16 +92,18 @@ export function InteractiveCell({ item, isVideo, style, onImageClick, onVideoCli
           />
         ) : (
           <div
-            className="absolute inset-[-8px] transition-transform duration-200 ease-out"
+            ref={imgRef}
+            className="absolute inset-[-8px]"
             style={{
-              transform: `translate(${tilt.x}px, ${tilt.y + parallaxY}px) scale(1.03)`,
+              transform: `translate(${tilt.x}px, ${tilt.y}px)`,
+              transition: tilt.x || tilt.y ? "transform 0.2s ease-out" : "none",
             }}
           >
             <Image
               src={item.file}
               alt=""
               fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
               loading="lazy"
             />
