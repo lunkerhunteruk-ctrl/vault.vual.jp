@@ -88,25 +88,6 @@ export default function VaultHome() {
         onClose={() => setSelectedImage(null)}
       />
 
-      {/* Side navigation dots */}
-      <nav className="fixed right-6 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3">
-        {sampleThemes.map((theme) => (
-          <button
-            key={theme.id}
-            onClick={() => {
-              document
-                .getElementById(theme.id)
-                ?.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="group flex items-center gap-3"
-          >
-            <span className="text-[9px] tracking-[2px] text-white/0 group-hover:text-white/40 transition-colors">
-              {theme.city}
-            </span>
-            <div className="w-1.5 h-1.5 rounded-full bg-white/20 group-hover:bg-white/60 transition-colors" />
-          </button>
-        ))}
-      </nav>
     </main>
   );
 }
