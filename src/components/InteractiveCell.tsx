@@ -90,6 +90,18 @@ export function InteractiveCell({ item, isVideo, style, onImageClick, onVideoCli
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
           />
+        ) : item.previewFile ? (
+          /* Has preview video — show video in grid, click opens static image */
+          <div ref={imgRef} className="absolute inset-0">
+            <video
+              src={item.previewFile}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </div>
         ) : (
           <div
             ref={imgRef}

@@ -9,6 +9,7 @@ export interface VaultCollection {
   createdAt: Date;
   media: {
     file: string;          // R2 URL
+    previewFile?: string;  // optional video preview for grid
     type: "image" | "video";
     aspect: "3:4" | "4:3" | "9:16" | "16:9" | "1:1";
     isHero?: boolean;

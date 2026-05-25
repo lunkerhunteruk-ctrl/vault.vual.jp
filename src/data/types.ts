@@ -1,5 +1,6 @@
 export interface VaultMedia {
-  file: string;          // path in public/collections/
+  file: string;          // main file (image for INJECT, or video)
+  previewFile?: string;  // optional: video preview for grid display (clicks still use file)
   type: "image" | "video";
   aspect: "9:16" | "3:4" | "4:3" | "16:9" | "1:1";
   isHero?: boolean;
