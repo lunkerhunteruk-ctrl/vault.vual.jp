@@ -1,4 +1,4 @@
-import { collection, getDocs, doc, setDoc, updateDoc, query, where, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, setDoc, updateDoc, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export interface VaultCollection {
@@ -91,10 +91,20 @@ export async function saveCollection(col: VaultCollection): Promise<void> {
   });
 }
 
-// Toggle published state
+// Toggle published state — when turning ON without a schedule, set publishAt to now
 export async function togglePublished(id: string, published: boolean): Promise<void> {
   if (!db) return;
-  await updateDoc(doc(db, 'vault_collections', id), { published });
+  const ref = doc(db, 'vault_collections', id);
+  if (published) {
+    const snap = await getDoc(ref);
+    const data = snap.data();
+    // If no publishAt set, stamp it with current time
+    if (!data?.publishAt) {
+      await updateDoc(ref, { published, publishAt: Timestamp.fromDate(new Date()) });
+      return;
+    }
+  }
+  await updateDoc(ref, { published });
 }
 
 // Update schedule
