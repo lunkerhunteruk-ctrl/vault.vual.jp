@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, getDocs, doc, updateDoc, getDoc, setDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { getAllCollections, togglePublished, setPublishSchedule, VaultCollection } from "@/lib/collections";
 
 interface InjectionData {
   remaining: number;
@@ -22,6 +23,7 @@ const ADMIN_KEY = "vual-vault-2026";
 export default function AdminPage() {
   const [counts, setCounts] = useState<Record<string, InjectionData>>({});
   const [users, setUsers] = useState<UserData[]>([]);
+  const [colls, setColls] = useState<VaultCollection[]>([]);
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
 
@@ -60,8 +62,13 @@ export default function AdminPage() {
     setUsers(data);
   };
 
+  const fetchCollections = async () => {
+    const data = await getAllCollections();
+    setColls(data);
+  };
+
   useEffect(() => {
-    Promise.all([fetchCounts(), fetchUsers()]).then(() => setLoading(false));
+    Promise.all([fetchCounts(), fetchUsers(), fetchCollections()]).then(() => setLoading(false));
   }, []);
 
   const updateCount = async (lookId: string, remaining: number) => {
@@ -180,6 +187,76 @@ export default function AdminPage() {
           No injection counts yet. Generate some images first.
         </p>
       )}
+
+      {/* Collections */}
+      <h2 className="text-[14px] tracking-[6px] text-white/40 font-light mt-12 mb-6">
+        COLLECTIONS
+      </h2>
+
+      <div className="space-y-3 max-w-2xl">
+        {colls.map((col) => {
+          const now = new Date();
+          const isScheduled = col.publishAt && col.publishAt > now;
+          const isLive = col.published && (!col.publishAt || col.publishAt <= now);
+
+          return (
+            <div key={col.id} className="p-4 border border-white/10 rounded-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[13px] text-white/70 font-light">{col.city}</p>
+                  <p className="text-[10px] text-white/25 font-light">
+                    {col.id} · {col.media.length} items
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`text-[9px] tracking-[2px] font-light px-2 py-1 rounded ${
+                    isLive ? "bg-green-500/20 text-green-400" :
+                    isScheduled ? "bg-yellow-500/20 text-yellow-400" :
+                    "bg-white/5 text-white/25"
+                  }`}>
+                    {isLive ? "LIVE" : isScheduled ? "SCHEDULED" : "DRAFT"}
+                  </span>
+                  <button
+                    onClick={async () => {
+                      await togglePublished(col.id, !col.published);
+                      fetchCollections();
+                    }}
+                    className={`px-3 py-1 text-[10px] tracking-[2px] border rounded cursor-pointer transition-colors ${
+                      col.published
+                        ? "border-green-500/30 text-green-400 hover:border-green-500/60"
+                        : "border-white/10 text-white/30 hover:border-white/30"
+                    }`}
+                  >
+                    {col.published ? "ON" : "OFF"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Schedule (BST) */}
+              <div className="flex items-center gap-3">
+                <span className="text-[9px] tracking-[1px] text-white/25">SCHEDULE (BST)</span>
+                <input
+                  type="datetime-local"
+                  defaultValue={col.publishAt ? new Date(col.publishAt.getTime() + 3600000).toISOString().slice(0, 16) : ""}
+                  onChange={async (e) => {
+                    if (e.target.value) {
+                      // Input is BST, convert to UTC (-1hr)
+                      const bst = new Date(e.target.value);
+                      const utc = new Date(bst.getTime() - 3600000);
+                      await setPublishSchedule(col.id, utc);
+                    } else {
+                      await setPublishSchedule(col.id, null);
+                    }
+                    fetchCollections();
+                  }}
+                  className="bg-white/5 border border-white/10 rounded px-2 py-1 text-[11px] text-white/60 font-light"
+                  style={{ colorScheme: "dark" }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Users */}
       <h2 className="text-[14px] tracking-[6px] text-white/40 font-light mt-12 mb-2">

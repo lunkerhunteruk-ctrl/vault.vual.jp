@@ -4,14 +4,16 @@ import { useState, useEffect } from "react";
 import { ThemeSection } from "@/components/ThemeSection";
 import { ImplantModal } from "@/components/ImplantModal";
 import { VaultMedia } from "@/data/types";
-import { sampleThemes, sampleEntities } from "@/data/sample";
+import { sampleEntities } from "@/data/sample";
 import { handleGoogleRedirectResult, fetchCreditsFromFirestore } from "@/lib/auth";
 import { useVaultStore } from "@/lib/store";
 import { UserBadge } from "@/components/UserBadge";
 import { VideoModal } from "@/components/VideoModal";
 import { HeroSection } from "@/components/HeroSection";
+import { getPublishedCollections, formatCollectionDate, VaultCollection } from "@/lib/collections";
 
 export default function VaultHome() {
+  const [collections, setCollections] = useState<VaultCollection[]>([]);
   const [selectedImage, setSelectedImage] = useState<
     (VaultMedia & { locationId: string }) | null
   >(null);
@@ -23,6 +25,11 @@ export default function VaultHome() {
   const addPaidCredits = useVaultStore((s) => s.addPaidCredits);
   const user = useVaultStore((s) => s.user);
   const syncCredits = useVaultStore((s) => s.syncFromFirestore);
+
+  // Fetch published collections from Firestore
+  useEffect(() => {
+    getPublishedCollections().then(setCollections);
+  }, []);
 
   // Handle Google redirect result (mobile sign-in)
   useEffect(() => {
@@ -48,7 +55,6 @@ export default function VaultHome() {
       if (credits > 0) {
         addPaidCredits(credits);
       }
-      // Clean URL
       window.history.replaceState({}, "", "/");
     }
     if (params.get("credit_canceled") === "true") {
@@ -56,14 +62,27 @@ export default function VaultHome() {
     }
   }, [addPaidCredits]);
 
+  // Convert VaultCollection to VaultTheme format for ThemeSection
+  const themes = collections.map((col) => ({
+    id: col.id,
+    date: formatCollectionDate(col),
+    city: col.city,
+    locations: [{
+      id: col.id,
+      name: col.city,
+      implantPrompt: "",
+      film: "leicaPortra800",
+      media: col.media.map((m) => ({ ...m, file: m.file })),
+    }],
+  }));
+
   return (
     <main className="relative">
       <UserBadge />
-      {/* Hero — animated tagline → auto-scroll */}
-      <HeroSection firstThemeId={sampleThemes[0]?.id} />
+      <HeroSection firstThemeId={themes[0]?.id} />
 
-      {/* Theme sections */}
-      {sampleThemes.map((theme) => (
+      {/* Theme sections from Firestore */}
+      {themes.map((theme) => (
         <ThemeSection
           key={theme.id}
           theme={theme}
@@ -76,10 +95,8 @@ export default function VaultHome() {
         />
       ))}
 
-      {/* Video player modal */}
       <VideoModal src={videoSrc} onClose={() => setVideoSrc(null)} />
 
-      {/* IMPLANT modal */}
       <ImplantModal
         image={selectedImage}
         entities={sampleEntities}
@@ -87,7 +104,6 @@ export default function VaultHome() {
         totalLooks={selectedTotalLooks}
         onClose={() => setSelectedImage(null)}
       />
-
     </main>
   );
 }
