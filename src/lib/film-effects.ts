@@ -236,14 +236,40 @@ export function applyFilmEffects(
       ctx.drawImage(canvas, 0, 0);
       ctx.filter = 'none';
 
-      // Grain — OFF (Gemini handles grain via pushed Portra 800 prompt)
+      // Grain — SVG fractal noise, size M, random intensity
+      // 30% low (0.45), 40% mid (0.65), 30% high (0.85)
+      const grainRoll = Math.random();
+      const grainOpacity = grainRoll < 0.3 ? 0.45 : grainRoll < 0.7 ? 0.65 : 0.85;
+      const grainSeed = Math.floor(Math.random() * 1000);
+      const grainSize = 250 + Math.floor(Math.random() * 70); // M size: 250-320px
+      const grainSvg = `data:image/svg+xml,${encodeURIComponent(
+        `<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" seed="${grainSeed}" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>`
+      )}`;
+      const grainImg = new Image();
+      grainImg.onload = () => {
+        // Create pattern from SVG grain
+        const grainCanvas = document.createElement('canvas');
+        grainCanvas.width = grainSize;
+        grainCanvas.height = grainSize;
+        const gc = grainCanvas.getContext('2d')!;
+        gc.drawImage(grainImg, 0, 0, grainSize, grainSize);
 
-      // Film edge print (title + lot number)
-      if (meta?.title || meta?.lot) {
-        addFilmEdgePrint(ctx, w, h, meta.title || '', meta.lot || '');
-      }
+        const pattern = ctx.createPattern(grainCanvas, 'repeat')!;
+        ctx.globalAlpha = grainOpacity;
+        ctx.globalCompositeOperation = 'overlay';
+        ctx.fillStyle = pattern;
+        ctx.fillRect(0, 0, w, h);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
 
-      resolve(canvas.toDataURL('image/jpeg', 0.92));
+        // Film edge print (title + lot number)
+        if (meta?.title || meta?.lot) {
+          addFilmEdgePrint(ctx, w, h, meta.title || '', meta.lot || '');
+        }
+
+        resolve(canvas.toDataURL('image/jpeg', 0.92));
+      };
+      grainImg.src = grainSvg;
     };
     img.src = dataUrl;
   });
