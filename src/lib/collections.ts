@@ -1,5 +1,6 @@
 import { collection, getDocs, getDoc, doc, setDoc, updateDoc, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { lookFileToId, getRemainingInjections } from '@/lib/injection-count';
 
 export interface VaultCollection {
   id: string;
@@ -92,6 +93,7 @@ export async function saveCollection(col: VaultCollection): Promise<void> {
 }
 
 // Toggle published state — when turning ON without a schedule, set publishAt to now
+// Also auto-generates injection counts for all media in the collection
 export async function togglePublished(id: string, published: boolean): Promise<void> {
   if (!db) return;
   const ref = doc(db, 'vault_collections', id);
@@ -101,8 +103,20 @@ export async function togglePublished(id: string, published: boolean): Promise<v
     // If no publishAt set, stamp it with current time
     if (!data?.publishAt) {
       await updateDoc(ref, { published, publishAt: Timestamp.fromDate(new Date()) });
-      return;
+    } else {
+      await updateDoc(ref, { published });
     }
+    // Auto-generate injection counts for all media
+    const media = data?.media || [];
+    await Promise.all(
+      media
+        .filter((m: any) => m.type === 'image')
+        .map((m: any) => {
+          const lookId = lookFileToId(m.file);
+          return getRemainingInjections(lookId); // creates if not exists
+        })
+    );
+    return;
   }
   await updateDoc(ref, { published });
 }
