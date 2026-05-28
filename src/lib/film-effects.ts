@@ -228,29 +228,11 @@ export function applyFilmEffects(
         addLightLeak(ctx, w, h, multiplier);
       }
 
-      // Leak — always fires. Weighted probability:
-      // Outdoor Low 30%, Outdoor Mid 40%, Outdoor High 15%,
-      // Indoor High 5%, Indoor Mid 5%, Neon High 5%
-      const leakRoll = Math.random() * 100;
-      let leakIntensity: number;
-      let leakMode: number;
-      if (leakRoll < 30) {        // 0-30: Outdoor Low
-        leakIntensity = 0.6; leakMode = 0;
-      } else if (leakRoll < 70) {  // 30-70: Outdoor Mid
-        leakIntensity = 1.0; leakMode = 0;
-      } else if (leakRoll < 85) {  // 70-85: Outdoor High
-        leakIntensity = 1.6; leakMode = 0;
-      } else if (leakRoll < 90) {  // 85-90: Indoor High
-        leakIntensity = 1.6; leakMode = 1;
-      } else if (leakRoll < 95) {  // 90-95: Indoor Mid
-        leakIntensity = 1.0; leakMode = 1;
-      } else {                     // 95-100: Neon High
-        leakIntensity = 1.6; leakMode = 2;
-      }
-      addEdgeBurn(ctx, w, h, leakIntensity, leakMode);
+      // Leak — disabled
+      // addEdgeBurn(ctx, w, h, leakIntensity, leakMode);
 
-      // Desaturation — always 0.75
-      ctx.filter = 'saturate(0.75)';
+      // Desaturation — always 0.85
+      ctx.filter = 'saturate(0.85)';
       ctx.drawImage(canvas, 0, 0);
       ctx.filter = 'none';
 
