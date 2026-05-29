@@ -57,7 +57,7 @@ export function ThemeSection({ theme, onImageClick, onVideoClick }: ThemeSection
       {/* Mondrian grid — only render when near viewport */}
       {hasBeenVisible && allMedia.length > 0 && (
         <div className="px-1">
-          <MondrianGrid media={allMedia} onImageClick={onImageClick} onVideoClick={onVideoClick} />
+          <MondrianGrid media={allMedia} collectionId={theme.id} onImageClick={onImageClick} onVideoClick={onVideoClick} />
         </div>
       )}
     </section>

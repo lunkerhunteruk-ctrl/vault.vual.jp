@@ -32,6 +32,59 @@ function layout6Mixed(): PlacedCell[] {
   // NO GAPS ✓
 }
 
+// 6 images (all 3:4). 4 layout patterns, selected by collection ID hash.
+function layout6Portrait(patternIndex: number): PlacedCell[] {
+  const patterns: PlacedCell[][] = [
+    // Pattern A: 1 hero left + 2 small right, then 2 medium + 1 tall right
+    [
+      { colStart: 1, colEnd: 8, rowStart: 1, rowEnd: 10 },    // hero 7×9
+      { colStart: 8, colEnd: 13, rowStart: 1, rowEnd: 5 },    // small 5×4
+      { colStart: 8, colEnd: 13, rowStart: 5, rowEnd: 10 },   // small 5×5
+      { colStart: 1, colEnd: 5, rowStart: 10, rowEnd: 16 },   // medium 4×6
+      { colStart: 5, colEnd: 9, rowStart: 10, rowEnd: 16 },   // medium 4×6
+      { colStart: 9, colEnd: 13, rowStart: 10, rowEnd: 16 },  // medium 4×6
+    ],
+    // Pattern B: 3 equal top, 1 wide bottom-left + 2 stacked right
+    [
+      { colStart: 1, colEnd: 5, rowStart: 1, rowEnd: 6 },     // 4×5
+      { colStart: 5, colEnd: 9, rowStart: 1, rowEnd: 6 },     // 4×5
+      { colStart: 9, colEnd: 13, rowStart: 1, rowEnd: 6 },    // 4×5
+      { colStart: 1, colEnd: 8, rowStart: 6, rowEnd: 15 },    // hero 7×9
+      { colStart: 8, colEnd: 13, rowStart: 6, rowEnd: 10 },   // small 5×4
+      { colStart: 8, colEnd: 13, rowStart: 10, rowEnd: 15 },  // small 5×5
+    ],
+    // Pattern C: 2 tall left stack + 1 hero right, then 3 equal bottom
+    [
+      { colStart: 1, colEnd: 6, rowStart: 1, rowEnd: 5 },     // 5×4
+      { colStart: 1, colEnd: 6, rowStart: 5, rowEnd: 10 },    // 5×5
+      { colStart: 6, colEnd: 13, rowStart: 1, rowEnd: 10 },   // hero 7×9
+      { colStart: 1, colEnd: 5, rowStart: 10, rowEnd: 16 },   // 4×6
+      { colStart: 5, colEnd: 9, rowStart: 10, rowEnd: 16 },   // 4×6
+      { colStart: 9, colEnd: 13, rowStart: 10, rowEnd: 16 },  // 4×6
+    ],
+    // Pattern D: 2 large top + 1 wide middle + 3 small bottom
+    [
+      { colStart: 1, colEnd: 7, rowStart: 1, rowEnd: 8 },     // large 6×7
+      { colStart: 7, colEnd: 13, rowStart: 1, rowEnd: 8 },    // large 6×7
+      { colStart: 1, colEnd: 13, rowStart: 8, rowEnd: 12 },   // wide full 12×4
+      { colStart: 1, colEnd: 5, rowStart: 12, rowEnd: 17 },   // small 4×5
+      { colStart: 5, colEnd: 9, rowStart: 12, rowEnd: 17 },   // small 4×5
+      { colStart: 9, colEnd: 13, rowStart: 12, rowEnd: 17 },  // small 4×5
+    ],
+  ];
+  return patterns[patternIndex % patterns.length];
+}
+
+// Simple hash from string to number for consistent pattern selection
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
 // 4 images (all 3:4). 12×12 grid, no overlap, no gaps.
 // 1 large + 3 small, or 2 large + 2 small
 function layout4Images(): PlacedCell[] {
@@ -210,11 +263,12 @@ function layoutMondrian(media: { aspect: string; type: string }[]): PlacedCell[]
 
 interface MondrianGridProps {
   media: (VaultMedia & { locationId: string })[];
+  collectionId?: string;
   onImageClick: (media: VaultMedia & { locationId: string }) => void;
   onVideoClick: (src: string) => void;
 }
 
-export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGridProps) {
+export function MondrianGrid({ media, collectionId, onImageClick, onVideoClick }: MondrianGridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
 
   const hasVideo = media.some((m) => m.type === "video");
@@ -226,8 +280,15 @@ export function MondrianGrid({ media, onImageClick, onVideoClick }: MondrianGrid
     aspects.filter(a => a === "16:9").length === 1 &&
     aspects.filter(a => a === "9:16").length === 1;
 
+  // Detect 6 images all 3:4 (portrait-only collection)
+  const is6Portrait = !hasVideo && media.length === 6 &&
+    aspects.every(a => a === "3:4");
+
   let placements: PlacedCell[];
-  if (is6Mixed) {
+  if (is6Portrait) {
+    const patternIdx = hashString(collectionId || 'default') % 4;
+    placements = layout6Portrait(patternIdx);
+  } else if (is6Mixed) {
     // Reorder: 16:9 first, then 3:4s and 4:3, then 9:16 last
     // layout6Mixed expects: [16:9, 3:4, 3:4, 4:3, 9:16, 3:4]
     // We need to sort media to match, but keep original indices for rendering
