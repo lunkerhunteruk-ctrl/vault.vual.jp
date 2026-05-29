@@ -115,10 +115,10 @@ export function ShuffleText({
                 style={{
                   display: "inline-block",
                   opacity,
-                  color: resolved ? "#ffffff" : glowColor,
+                  color: resolved ? "var(--vault-text)" : glowColor,
                   textShadow:
                     glowIntensity > 0.1
-                      ? `0 0 ${glowIntensity * 12}px ${glowColor}, 0 0 ${glowIntensity * 25}px ${glowColor}40`
+                      ? `0 0 ${glowIntensity * 12}px var(--vault-cyan), 0 0 ${glowIntensity * 25}px var(--vault-cyan-dim)`
                       : "none",
                 }}
               >

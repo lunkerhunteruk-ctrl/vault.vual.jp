@@ -39,7 +39,7 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
           startDelay={500}
           shuffleDuration={500}
           stagger={35}
-          glowColor="#00d4ff"
+          glowColor="var(--vault-cyan)"
           fontSize="clamp(16px, 4vw, 32px)"
           letterSpacing="clamp(5px, 1.5vw, 14px)"
         />
