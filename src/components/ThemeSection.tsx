@@ -44,7 +44,7 @@ export function ThemeSection({ theme, onImageClick, onVideoClick }: ThemeSection
           <p className="text-[13px] tracking-[6px] font-light mb-4" style={{ color: "var(--vault-text-dim)" }}>
             {theme.date}
           </p>
-          <h2 className="text-[42px] tracking-[16px] font-light" style={{ color: "var(--vault-text)" }}>
+          <h2 className="font-light px-4 text-center" style={{ color: "var(--vault-text)", fontSize: "clamp(20px, 6vw, 42px)", letterSpacing: "clamp(6px, 2vw, 16px)" }}>
             {theme.city}
           </h2>
           <div

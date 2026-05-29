@@ -142,7 +142,7 @@ export function LatestStrip({ media, date, city, onImageClick, onVideoClick }: L
         <p className="text-[13px] tracking-[6px] font-light mb-4" style={{ color: "var(--vault-text-dim)" }}>
           {date}
         </p>
-        <h2 className="text-[32px] tracking-[14px] font-light" style={{ color: "var(--vault-text)" }}>
+        <h2 className="font-light px-4 text-center" style={{ color: "var(--vault-text)", fontSize: "clamp(18px, 5.5vw, 32px)", letterSpacing: "clamp(5px, 1.8vw, 14px)" }}>
           {city}
         </h2>
         <div
