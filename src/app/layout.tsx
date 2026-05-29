@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${mono.variable} h-full`}>
+    <html lang="en" data-theme="light" className={`${mono.variable} h-full`}>
       <body className="min-h-full font-mono" style={{ background: "var(--vault-bg)", color: "var(--vault-text)" }}>
         {children}
       </body>

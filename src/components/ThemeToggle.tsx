@@ -3,14 +3,15 @@
 import { useState, useEffect } from "react";
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("vault-theme");
-    if (saved === "light") {
-      setIsDark(false);
-      document.documentElement.setAttribute("data-theme", "light");
+    if (saved === "dark") {
+      setIsDark(true);
+      document.documentElement.removeAttribute("data-theme");
     }
+    // light is already set via layout.tsx data-theme="light"
   }, []);
 
   const toggle = () => {
@@ -65,7 +66,7 @@ export function ThemeToggle() {
         <div
           className="absolute top-[2px] transition-all duration-500 ease-[cubic-bezier(0.68,-0.15,0.32,1.15)]"
           style={{
-            left: isDark ? 2 : 28,
+            left: isDark ? 28 : 2,
             width: 24,
             height: 24,
             borderRadius: 12,

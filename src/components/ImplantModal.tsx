@@ -357,9 +357,10 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
                   <div className="flex-1 flex justify-end">
                     <button
                       onClick={handleClose}
-                      className="w-7 h-7 rounded-full border border-white/15 flex items-center justify-center hover:border-white/30 transition-colors cursor-pointer"
+                      className="w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                      style={{ border: "1px solid var(--vault-border)" }}
                     >
-                      <svg width="10" height="10" viewBox="0 0 10 10" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" fill="none">
+                      <svg width="10" height="10" viewBox="0 0 10 10" stroke="var(--vault-text-dim)" strokeWidth="1.5" fill="none">
                         <path d="M1 1l8 8M9 1l-8 8" />
                       </svg>
                     </button>

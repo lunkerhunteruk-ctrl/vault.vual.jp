@@ -10,6 +10,7 @@ import { useVaultStore } from "@/lib/store";
 import { UserBadge } from "@/components/UserBadge";
 import { VideoModal } from "@/components/VideoModal";
 import { HeroSection } from "@/components/HeroSection";
+import { LatestStrip } from "@/components/LatestStrip";
 import { getPublishedCollections, formatCollectionDate, VaultCollection } from "@/lib/collections";
 
 export default function VaultHome() {
@@ -81,8 +82,31 @@ export default function VaultHome() {
       <UserBadge />
       <HeroSection firstThemeId={themes[0]?.id} />
 
-      {/* Theme sections from Firestore */}
-      {themes.map((theme) => (
+      {/* Latest collection — horizontal tape strip */}
+      {themes.length > 0 && (() => {
+        const latest = themes[0];
+        const latestMedia = latest.locations.flatMap((loc) =>
+          loc.media.map((m) => ({ ...m, locationId: loc.id }))
+        );
+        return (
+          <div id={latest.id}>
+            <LatestStrip
+              media={latestMedia}
+              date={latest.date}
+              city={latest.city}
+              onImageClick={(img) => {
+                setSelectedImage(img);
+                setSelectedCity(latest.city);
+                setSelectedTotalLooks(latestMedia.filter(m => m.type === "image").length);
+              }}
+              onVideoClick={setVideoSrc}
+            />
+          </div>
+        );
+      })()}
+
+      {/* Remaining collections — Mondrian grid */}
+      {themes.slice(1).map((theme) => (
         <ThemeSection
           key={theme.id}
           theme={theme}

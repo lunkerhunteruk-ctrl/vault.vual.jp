@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ShuffleText } from "./ShuffleText";
 import { ThemeToggle } from "./ThemeToggle";
+import { CircuitPulse } from "./CircuitPulse";
 
 interface HeroSectionProps {
   firstThemeId?: string;
@@ -10,6 +11,7 @@ interface HeroSectionProps {
 
 export function HeroSection({ firstThemeId }: HeroSectionProps) {
   const scrolledRef = useRef(false);
+  const [textDone, setTextDone] = useState(false);
 
   useEffect(() => {
     const onScroll = () => { scrolledRef.current = true; };
@@ -28,9 +30,16 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
     };
   }, [firstThemeId]);
 
+  // Total text chars (excluding spaces) * stagger + startDelay = when "INJECT YOUR DNA." finishes
+  // "OWNOTHING.INJECTYOURDNA." = 24 chars, stagger 50ms = ~1200ms + 500ms delay = ~1700ms
+  const pulseDelay = 1700;
+
   return (
-    <section className="h-screen flex flex-col items-center justify-center relative">
-      <div className="text-center w-full px-6">
+    <section className="h-screen flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Circuit pulse background */}
+      <CircuitPulse triggerAt={pulseDelay} />
+
+      <div className="text-center w-full px-6 relative z-10">
         <p className="text-[11px] tracking-[8px] font-light mb-8" style={{ color: "var(--vault-text-dim)" }}>
           VAULT
         </p>
@@ -38,11 +47,10 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
         <ShuffleText
           lines={["OWN NOTHING.", "INJECT YOUR DNA."]}
           startDelay={500}
-          shuffleDuration={500}
-          stagger={35}
-          glowColor="var(--vault-cyan)"
+          stagger={50}
           fontSize="clamp(16px, 4vw, 32px)"
           letterSpacing="clamp(5px, 1.5vw, 14px)"
+          onComplete={() => setTextDone(true)}
         />
 
         <div className="mx-auto mt-8 w-[1px] h-8" style={{ background: "var(--vault-border)" }} />

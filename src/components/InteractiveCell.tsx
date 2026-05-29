@@ -123,11 +123,34 @@ export function InteractiveCell({ item, isVideo, style, onImageClick, onVideoCli
         )}
         {!isVideo && (
           <div
-            className="absolute inset-0 transition-all duration-300"
-            style={{ ["--hover-border" as string]: "var(--vault-cyan)" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = `inset 0 0 0 1.5px var(--vault-cyan)`; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
-          />
+            className="absolute inset-0 transition-all duration-300 flex items-end justify-center"
+            onMouseEnter={(e) => {
+              const el = e.currentTarget as HTMLElement;
+              el.style.boxShadow = `inset 0 0 0 1.5px var(--vault-cyan)`;
+              el.dataset.hovered = "true";
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget as HTMLElement;
+              el.style.boxShadow = "none";
+              el.dataset.hovered = "";
+            }}
+          >
+            <span
+              className="mb-3 text-[9px] tracking-[4px] font-light opacity-0 translate-y-2 transition-all duration-300 pointer-events-none"
+              style={{ color: "var(--vault-cyan)" }}
+              ref={(el) => {
+                if (!el) return;
+                const parent = el.parentElement;
+                if (!parent) return;
+                const show = () => { el.style.opacity = "1"; el.style.transform = "translateY(0)"; };
+                const hide = () => { el.style.opacity = "0"; el.style.transform = "translateY(4px)"; };
+                parent.addEventListener("mouseenter", show);
+                parent.addEventListener("mouseleave", hide);
+              }}
+            >
+              TRY ON
+            </span>
+          </div>
         )}
       </div>
     </div>

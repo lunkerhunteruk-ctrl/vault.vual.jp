@@ -2,45 +2,47 @@
 
 import { useState, useEffect, useRef } from "react";
 
-const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
-
-const seededRandom = (seed: number) => {
-  const x = Math.sin(seed * 9301 + 49297) * 49297;
-  return x - Math.floor(x);
-};
-
 interface ShuffleTextProps {
   lines: string[];
-  startDelay?: number;      // ms before animation starts
-  shuffleDuration?: number; // ms each char shuffles before resolving
-  stagger?: number;         // ms between each char start
+  startDelay?: number;
+  shuffleDuration?: number;  // kept for API compat — now controls strike timing
+  stagger?: number;          // ms between each char
   glowColor?: string;
   fontSize?: string;
   letterSpacing?: string;
   className?: string;
+  onComplete?: () => void;
 }
 
 export function ShuffleText({
   lines,
   startDelay = 0,
-  shuffleDuration = 400,
   stagger = 40,
-  glowColor = "#00d4ff",
   fontSize = "28px",
   letterSpacing = "10px",
   className = "",
+  onComplete,
 }: ShuffleTextProps) {
-  const [frame, setFrame] = useState(-1); // -1 = not started
-  const startTime = useRef(0);
+  const [frame, setFrame] = useState(-1);
+  const startTimeRef = useRef(0);
   const rafRef = useRef<number>(0);
+  const completedRef = useRef(false);
+
+  const totalChars = lines.join("").replace(/ /g, "").length;
+  const totalDurationMs = totalChars * stagger + 600; // extra for ink settle
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      startTime.current = performance.now();
+      startTimeRef.current = performance.now();
       const tick = () => {
-        const elapsed = performance.now() - startTime.current;
-        setFrame(Math.floor(elapsed / 16.67)); // ~60fps frame count
-        rafRef.current = requestAnimationFrame(tick);
+        const elapsed = performance.now() - startTimeRef.current;
+        setFrame(Math.floor(elapsed));
+        if (elapsed < totalDurationMs + 1000) {
+          rafRef.current = requestAnimationFrame(tick);
+        } else if (!completedRef.current) {
+          completedRef.current = true;
+          onComplete?.();
+        }
       };
       rafRef.current = requestAnimationFrame(tick);
     }, startDelay);
@@ -49,18 +51,7 @@ export function ShuffleText({
       clearTimeout(timeout);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [startDelay]);
-
-  // Calculate total chars to know when animation is done
-  const totalChars = lines.join("").replace(/ /g, "").length;
-  const totalDurationFrames = Math.ceil((totalChars * stagger + shuffleDuration) / 16.67);
-
-  // Stop RAF when done
-  useEffect(() => {
-    if (frame > totalDurationFrames + 30) {
-      cancelAnimationFrame(rafRef.current);
-    }
-  }, [frame, totalDurationFrames]);
+  }, [startDelay, totalDurationMs, onComplete]);
 
   let globalCharIndex = 0;
 
@@ -86,10 +77,10 @@ export function ShuffleText({
             }
 
             const ci = globalCharIndex++;
-            const charStartFrame = Math.floor((ci * stagger) / 16.67);
-            const shuffleFrames = Math.floor(shuffleDuration / 16.67);
-            const elapsed = frame - charStartFrame;
+            const charTime = ci * stagger; // ms when this char strikes
+            const elapsed = frame - charTime;
 
+            // Not yet typed
             if (frame < 0 || elapsed < 0) {
               return (
                 <span key={charIdx} style={{ opacity: 0, display: "inline-block" }}>
@@ -98,16 +89,36 @@ export function ShuffleText({
               );
             }
 
-            const resolved = elapsed >= shuffleFrames;
-            const displayChar = resolved
-              ? char
-              : CHARS[Math.floor(seededRandom(ci * 1000 + frame * 7) * CHARS.length)];
+            // Strike phase (0-80ms): char slams in with slight scale
+            const strikeProgress = Math.min(elapsed / 80, 1);
+            const strikeEase = 1 - Math.pow(1 - strikeProgress, 3);
 
-            const glowIntensity = resolved
-              ? Math.max(0, 1 - (elapsed - shuffleFrames) / 8)
-              : Math.min(1, elapsed / (shuffleFrames * 0.3));
+            // Ink bleed phase (80-400ms): subtle spread
+            const inkProgress = elapsed > 80 ? Math.min((elapsed - 80) / 320, 1) : 0;
+            const inkEase = 1 - Math.pow(1 - inkProgress, 2);
 
-            const opacity = Math.min(1, elapsed / 3);
+            // Scale: starts at 1.15, settles to 1.0
+            const scale = strikeProgress < 1
+              ? 1 + 0.15 * (1 - strikeEase)
+              : 1;
+
+            // Opacity: quick fade in
+            const opacity = Math.min(strikeEase * 1.2, 1);
+
+            // Ink bleed — subtle text-shadow that spreads and fades
+            const inkSpread = inkEase * 2;
+            const inkAlpha = Math.max(0, 0.3 * (1 - inkEase));
+            const inkShadow = inkAlpha > 0.01
+              ? `0 0 ${inkSpread}px rgba(var(--vault-ink-rgb, 0,0,0), ${inkAlpha})`
+              : "none";
+
+            // Impact flash — brief bright moment on strike
+            const flashAlpha = elapsed < 60 ? Math.max(0, 0.4 * (1 - elapsed / 60)) : 0;
+            const flashShadow = flashAlpha > 0.01
+              ? `0 0 8px rgba(var(--vault-ink-rgb, 0,0,0), ${flashAlpha})`
+              : "";
+
+            const textShadow = [inkShadow, flashShadow].filter(s => s && s !== "none").join(", ") || "none";
 
             return (
               <span
@@ -115,14 +126,13 @@ export function ShuffleText({
                 style={{
                   display: "inline-block",
                   opacity,
-                  color: resolved ? "var(--vault-text)" : glowColor,
-                  textShadow:
-                    glowIntensity > 0.1
-                      ? `0 0 ${glowIntensity * 12}px var(--vault-cyan), 0 0 ${glowIntensity * 25}px var(--vault-cyan-dim)`
-                      : "none",
+                  color: "var(--vault-text)",
+                  transform: `scale(${scale})`,
+                  textShadow,
+                  transition: "none",
                 }}
               >
-                {displayChar}
+                {char}
               </span>
             );
           })}
