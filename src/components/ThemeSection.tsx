@@ -41,15 +41,15 @@ export function ThemeSection({ theme, onImageClick, onVideoClick }: ThemeSection
             transform: hasBeenVisible ? "translateY(0)" : "translateY(20px)",
           }}
         >
-          <p className="text-[13px] tracking-[6px] text-white/30 font-light mb-4">
+          <p className="text-[13px] tracking-[6px] font-light mb-4" style={{ color: "var(--vault-text-dim)" }}>
             {theme.date}
           </p>
-          <h2 className="text-[42px] tracking-[16px] font-light text-white/80">
+          <h2 className="text-[42px] tracking-[16px] font-light" style={{ color: "var(--vault-text)" }}>
             {theme.city}
           </h2>
           <div
-            className="mx-auto mt-6 h-[1px] bg-white/10 transition-all duration-1000 delay-300"
-            style={{ width: hasBeenVisible ? 120 : 0 }}
+            className="mx-auto mt-6 h-[1px] transition-all duration-1000 delay-300"
+            style={{ background: "var(--vault-border)", width: hasBeenVisible ? 120 : 0 }}
           />
         </div>
       </div>

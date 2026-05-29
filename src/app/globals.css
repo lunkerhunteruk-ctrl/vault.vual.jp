@@ -8,6 +8,19 @@
   --vault-text-dim: rgba(255, 255, 255, 0.45);
   --vault-border: rgba(255, 255, 255, 0.08);
   --vault-grid-gap: 2px;
+  --vault-gold: #c9a84c;
+  --vault-gold-dim: #c9a84c30;
+}
+
+:root[data-theme="light"] {
+  --vault-bg: #f5f3ef;
+  --vault-cyan: #c9a84c;
+  --vault-cyan-dim: #c9a84c30;
+  --vault-text: #1a1a1a;
+  --vault-text-dim: rgba(0, 0, 0, 0.45);
+  --vault-border: rgba(0, 0, 0, 0.08);
+  --vault-gold: #c9a84c;
+  --vault-gold-dim: #c9a84c30;
 }
 
 @theme inline {
@@ -32,6 +45,9 @@ body {
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 2px;
+}
+:root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
 }
 
 /* Selection */

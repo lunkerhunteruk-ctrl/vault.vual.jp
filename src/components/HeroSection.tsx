@@ -30,7 +30,7 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
   return (
     <section className="h-screen flex flex-col items-center justify-center relative">
       <div className="text-center w-full px-6">
-        <p className="text-[11px] tracking-[8px] text-white/15 font-light mb-8">
+        <p className="text-[11px] tracking-[8px] font-light mb-8" style={{ color: "var(--vault-text-dim)" }}>
           VAULT
         </p>
 
@@ -44,15 +44,15 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
           letterSpacing="clamp(5px, 1.5vw, 14px)"
         />
 
-        <div className="mx-auto mt-8 w-[1px] h-8 bg-white/10" />
-        <p className="mt-4 text-[9px] tracking-[5px] text-white/15 font-light">
+        <div className="mx-auto mt-8 w-[1px] h-8" style={{ background: "var(--vault-border)" }} />
+        <p className="mt-4 text-[9px] tracking-[5px] font-light" style={{ color: "var(--vault-text-dim)" }}>
           by VUAL
         </p>
       </div>
 
       {/* Scroll indicator */}
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
-        <div className="w-[1px] h-8 bg-white/10 animate-pulse" />
+        <div className="w-[1px] h-8 animate-pulse" style={{ background: "var(--vault-border)" }} />
       </div>
     </section>
   );
