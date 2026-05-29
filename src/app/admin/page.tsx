@@ -40,9 +40,16 @@ export default function AdminPage() {
     const data: Record<string, InjectionData> = {};
     snapshot.forEach((d) => {
       const val = d.data();
+      if (val.hidden) return; // skip hidden
       data[d.id] = { remaining: val.remaining ?? 0, initial: val.initial ?? 0 };
     });
     setCounts(data);
+  };
+
+  const hideCount = async (lookId: string) => {
+    if (!db) return;
+    await updateDoc(doc(db, "injection_counts", lookId), { hidden: true });
+    fetchCounts();
   };
 
   const fetchUsers = async () => {
@@ -176,6 +183,12 @@ export default function AdminPage() {
                 className="ml-1 px-3 py-1 text-[9px] tracking-[2px] border border-white/10 rounded text-white/25 hover:border-white/30 hover:text-white/50 cursor-pointer"
               >
                 RESET
+              </button>
+              <button
+                onClick={() => { if (confirm(`Hide "${lookId}"?`)) hideCount(lookId); }}
+                className="ml-1 px-3 py-1 text-[9px] tracking-[2px] border border-red-900/30 rounded text-red-400/40 hover:border-red-500/50 hover:text-red-400/70 cursor-pointer"
+              >
+                HIDE
               </button>
             </div>
           </div>
