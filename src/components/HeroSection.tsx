@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { ShuffleText } from "./ShuffleText";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface HeroSectionProps {
   firstThemeId?: string;
@@ -48,6 +49,9 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
         <p className="mt-4 text-[9px] tracking-[5px] font-light" style={{ color: "var(--vault-text-dim)" }}>
           by VUAL
         </p>
+        <div className="mt-6">
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Scroll indicator */}

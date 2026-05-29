@@ -10,7 +10,6 @@ import { useVaultStore } from "@/lib/store";
 import { UserBadge } from "@/components/UserBadge";
 import { VideoModal } from "@/components/VideoModal";
 import { HeroSection } from "@/components/HeroSection";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { getPublishedCollections, formatCollectionDate, VaultCollection } from "@/lib/collections";
 
 export default function VaultHome() {
@@ -81,11 +80,6 @@ export default function VaultHome() {
     <main className="relative">
       <UserBadge />
       <HeroSection firstThemeId={themes[0]?.id} />
-
-      {/* Theme toggle */}
-      <div className="flex justify-center py-6">
-        <ThemeToggle />
-      </div>
 
       {/* Theme sections from Firestore */}
       {themes.map((theme) => (

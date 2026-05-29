@@ -122,7 +122,12 @@ export function InteractiveCell({ item, isVideo, style, onImageClick, onVideoCli
           </div>
         )}
         {!isVideo && (
-          <div className="absolute inset-0 transition-all duration-300 group-hover:[box-shadow:inset_0_0_0_1.5px_rgba(0,212,255,0.5)]" />
+          <div
+            className="absolute inset-0 transition-all duration-300"
+            style={{ ["--hover-border" as string]: "var(--vault-cyan)" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = `inset 0 0 0 1.5px var(--vault-cyan)`; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+          />
         )}
       </div>
     </div>
