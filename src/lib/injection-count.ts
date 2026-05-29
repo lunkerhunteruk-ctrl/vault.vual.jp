@@ -3,9 +3,14 @@ import { db } from '@/lib/firebase';
 
 // Convert file path to Firestore-safe doc ID
 // e.g. "https://...r2.dev/vault/collections/20-05-2026/look1.jpg" → "20-05-2026_look1"
+// e.g. "https://...r2.dev/vault/collections/tsukiji_kaitensushi/look3.jpg" → "tsukiji_kaitensushi_look3"
 export function lookFileToId(file: string): string {
-  const match = file.match(/(\d{2}-\d{2}-\d{4})\/look(\d+)\.jpg/);
-  if (match) return `${match[1]}_look${match[2]}`;
+  // Match date-based paths: /20-05-2026/look1.jpg
+  const dateMatch = file.match(/(\d{2}-\d{2}-\d{4})\/look(\d+)\.\w+/);
+  if (dateMatch) return `${dateMatch[1]}_look${dateMatch[2]}`;
+  // Match named collection paths: /collections/some_name/look1.jpg
+  const namedMatch = file.match(/collections\/([^/]+)\/look(\d+)\.\w+/);
+  if (namedMatch) return `${namedMatch[1]}_look${namedMatch[2]}`;
   return file.replace(/[^a-zA-Z0-9]/g, '_');
 }
 
