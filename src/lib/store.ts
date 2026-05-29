@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { VaultUser } from './auth';
-import { syncCreditsToFirestore } from './auth';
+import { syncCreditsToFirestore, addPointsToFirestore } from './auth';
 
 const GUEST_FREE = 1;
 const DAILY_FREE = 5;
@@ -17,9 +17,11 @@ interface VaultStore {
   freeUsed: number;
   freeResetDate: string; // "YYYY-MM-DD" — when freeUsed was last reset
   paidCredits: number;
+  points: number;
   incrementGeneration: () => void;
   addPaidCredits: (amount: number) => void;
-  syncFromFirestore: (paidCredits: number, freeUsed: number, freeResetDate?: string) => void;
+  addPoints: (amount: number) => void;
+  syncFromFirestore: (paidCredits: number, freeUsed: number, freeResetDate?: string, points?: number) => void;
 
   canGenerate: () => boolean;
   freeRemaining: () => number;
@@ -36,9 +38,9 @@ function checkDailyReset(state: { user: VaultUser | null; freeUsed: number; free
   return { freeUsed: state.freeUsed, freeResetDate: state.freeResetDate };
 }
 
-function syncToFirestore(state: { user: VaultUser | null; paidCredits: number; freeUsed: number; freeResetDate: string }) {
+function syncToFirestore(state: { user: VaultUser | null; paidCredits: number; freeUsed: number; freeResetDate: string; points?: number }) {
   if (state.user) {
-    syncCreditsToFirestore(state.user.id, state.paidCredits, state.freeUsed, state.freeResetDate).catch(() => {});
+    syncCreditsToFirestore(state.user.id, state.paidCredits, state.freeUsed, state.freeResetDate, state.points).catch(() => {});
   }
 }
 
@@ -65,6 +67,7 @@ export const useVaultStore = create<VaultStore>()(
       freeUsed: 0,
       freeResetDate: todayStr(),
       paidCredits: 0,
+      points: 0,
 
       incrementGeneration: () => {
         const state = get();
@@ -86,13 +89,14 @@ export const useVaultStore = create<VaultStore>()(
         }
       },
 
-      syncFromFirestore: (serverPaid, serverFreeUsed, serverResetDate) => {
+      syncFromFirestore: (serverPaid, serverFreeUsed, serverResetDate, serverPoints) => {
         const local = get();
         const freeResetDate = serverResetDate || local.freeResetDate;
         set({
           paidCredits: Math.max(local.paidCredits, serverPaid),
           freeUsed: Math.max(local.freeUsed, serverFreeUsed),
           freeResetDate,
+          points: serverPoints ?? local.points,
         });
         // Check daily reset
         const reset = checkDailyReset({ user: local.user, freeUsed: Math.max(local.freeUsed, serverFreeUsed), freeResetDate });
@@ -104,6 +108,15 @@ export const useVaultStore = create<VaultStore>()(
         const newPaid = paidCredits + amount;
         set({ paidCredits: newPaid });
         syncToFirestore({ user, paidCredits: newPaid, freeUsed, freeResetDate });
+      },
+
+      addPoints: (amount) => {
+        const { user, points } = get();
+        const newPoints = points + amount;
+        set({ points: newPoints });
+        if (user) {
+          addPointsToFirestore(user.id, amount).catch(() => {});
+        }
       },
 
       canGenerate: () => {
@@ -134,6 +147,7 @@ export const useVaultStore = create<VaultStore>()(
         freeUsed: state.freeUsed,
         freeResetDate: state.freeResetDate,
         paidCredits: state.paidCredits,
+        points: state.points,
       }),
     }
   )

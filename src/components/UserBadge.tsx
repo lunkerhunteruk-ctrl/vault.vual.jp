@@ -19,6 +19,7 @@ export function UserBadge() {
   const freeRemaining = useVaultStore((s) => s.freeRemaining);
   const paidCredits = useVaultStore((s) => s.paidCredits);
   const totalRemaining = useVaultStore((s) => s.totalRemaining);
+  const points = useVaultStore((s) => s.points);
 
   // Close menu on outside click
   useEffect(() => {
@@ -98,6 +99,14 @@ export function UserBadge() {
                   {paidCredits}
                 </span>
               </div>
+            </div>
+
+            {/* Points */}
+            <div className="flex justify-between text-[11px] font-light">
+              <span className="text-white/40">{navigator.language.startsWith("ja") ? "ポイント" : "Points"}</span>
+              <span style={{ color: points > 0 ? "var(--vault-gold)" : "rgba(255,255,255,0.2)" }}>
+                {points} pt
+              </span>
             </div>
 
             {/* My Vault */}

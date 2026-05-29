@@ -49,8 +49,8 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
   const canGenerate = useVaultStore((s) => s.canGenerate);
   const incrementGeneration = useVaultStore((s) => s.incrementGeneration);
   const totalRemaining = useVaultStore((s) => s.totalRemaining);
-  const freeUsed = useVaultStore((s) => s.freeUsed);
   const freeRemaining = useVaultStore((s) => s.freeRemaining);
+  const addPoints = useVaultStore((s) => s.addPoints);
 
   // Fetch scene injection info when image changes
   useEffect(() => {
@@ -152,11 +152,12 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
         setResultUrl(withEffects);
         incrementGeneration();
 
-        // Only consume scene injection count for paid generations
+        // Only consume scene injection count + award points for paid generations
         if (!isFreeGeneration) {
           const lookId = lookFileToId(image.file);
           const newRemaining = await decrementInjection(lookId);
           setSceneRemaining(newRemaining);
+          addPoints(10); // 10pt per paid generation
         }
 
         // Auto-save to My Vault (background, non-blocking)

@@ -11,6 +11,7 @@ export interface VaultUser {
   photoURL?: string;
   paidCredits: number;
   freeUsed: number;
+  points: number;
   createdAt: Date;
 }
 
@@ -32,6 +33,7 @@ async function upsertUser(firebaseUser: import('firebase/auth').User): Promise<V
       photoURL: data.photoURL || firebaseUser.photoURL || undefined,
       paidCredits: data.paidCredits || 0,
       freeUsed: data.freeUsed || 0,
+      points: data.points || 0,
       createdAt: data.createdAt?.toDate?.() || new Date(),
     };
   }
@@ -42,6 +44,7 @@ async function upsertUser(firebaseUser: import('firebase/auth').User): Promise<V
     photoURL: firebaseUser.photoURL || undefined,
     paidCredits: 0,
     freeUsed: 0,
+    points: 0,
     createdAt: new Date(),
   };
 
@@ -64,21 +67,30 @@ export async function handleGoogleRedirectResult(): Promise<VaultUser | null> {
   return upsertUser(result.user);
 }
 
-export async function fetchCreditsFromFirestore(userId: string): Promise<{ paidCredits: number; freeUsed: number; freeResetDate?: string } | null> {
+export async function fetchCreditsFromFirestore(userId: string): Promise<{ paidCredits: number; freeUsed: number; freeResetDate?: string; points?: number } | null> {
   if (!db) return null;
   const userRef = doc(db, 'vault_users', userId);
   const userDoc = await getDoc(userRef);
   if (!userDoc.exists()) return null;
   const data = userDoc.data();
-  return { paidCredits: data.paidCredits || 0, freeUsed: data.freeUsed || 0, freeResetDate: data.freeResetDate || undefined };
+  return { paidCredits: data.paidCredits || 0, freeUsed: data.freeUsed || 0, freeResetDate: data.freeResetDate || undefined, points: data.points || 0 };
 }
 
-export async function syncCreditsToFirestore(userId: string, paidCredits: number, freeUsed: number, freeResetDate?: string): Promise<void> {
+export async function syncCreditsToFirestore(userId: string, paidCredits: number, freeUsed: number, freeResetDate?: string, points?: number): Promise<void> {
   if (!db) return;
   const userRef = doc(db, 'vault_users', userId);
   const update: Record<string, unknown> = { paidCredits, freeUsed, updatedAt: new Date() };
   if (freeResetDate) update.freeResetDate = freeResetDate;
+  if (points !== undefined) update.points = points;
   await updateDoc(userRef, update);
+}
+
+export async function addPointsToFirestore(userId: string, amount: number): Promise<void> {
+  if (!db) return;
+  const userRef = doc(db, 'vault_users', userId);
+  const userDoc = await getDoc(userRef);
+  const current = userDoc.exists() ? (userDoc.data().points || 0) : 0;
+  await updateDoc(userRef, { points: current + amount });
 }
 
 export async function signOutVault(): Promise<void> {
