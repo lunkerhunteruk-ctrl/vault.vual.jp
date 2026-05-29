@@ -44,8 +44,10 @@ export async function POST(request: NextRequest) {
 
     const modelHeight = height || 170;
 
-    // Extract look path: "https://...r2.dev/vault/collections/20-05-2026/look2.jpg" → "20-05-2026/look2"
-    const lookMatch = lookFile.match(/(\d{2}-\d{2}-\d{4}\/look\d+)\.jpg/);
+    // Extract look path from R2 URL
+    // Date-based: "https://...r2.dev/vault/collections/20-05-2026/look2.jpg" → "20-05-2026/look2"
+    // Named: "https://...r2.dev/vault/collections/29-05-2026_shibuya_italian/look2.jpg" → "29-05-2026_shibuya_italian/look2"
+    const lookMatch = lookFile.match(/collections\/([^/]+\/look\d+)\.\w+/);
     if (!lookMatch) {
       return NextResponse.json({ error: 'Invalid lookFile format' }, { status: 400 });
     }
