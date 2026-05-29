@@ -34,6 +34,16 @@ export default function AdminPage() {
     }
   }, []);
 
+  // Force dark mode on admin page
+  useEffect(() => {
+    const root = document.documentElement;
+    const prev = root.getAttribute("data-theme");
+    root.removeAttribute("data-theme");
+    return () => {
+      if (prev) root.setAttribute("data-theme", prev);
+    };
+  }, []);
+
   const fetchCounts = async () => {
     if (!db) return;
     const snapshot = await getDocs(collection(db, "injection_counts"));
@@ -109,7 +119,7 @@ export default function AdminPage() {
   const sorted = Object.entries(counts).sort(([a], [b]) => b.localeCompare(a));
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white p-8">
+    <div className="vault-admin min-h-screen bg-[#0a0a0a] text-white p-8">
       <h1 className="text-[14px] tracking-[6px] text-white/40 font-light mb-8">
         VAULT ADMIN — INJECTION COUNTS
       </h1>
@@ -265,6 +275,27 @@ export default function AdminPage() {
                   className="bg-white/5 border border-white/10 rounded px-2 py-1 text-[11px] text-white/60 font-light"
                   style={{ colorScheme: "dark" }}
                 />
+              </div>
+
+              {/* Override publishAt date */}
+              <div className="flex items-center gap-3">
+                <span className="text-[9px] tracking-[1px] text-white/25">DATE OVERRIDE</span>
+                <input
+                  type="date"
+                  defaultValue={col.publishAt ? col.publishAt.toISOString().slice(0, 10) : col.createdAt.toISOString().slice(0, 10)}
+                  onChange={async (e) => {
+                    if (e.target.value) {
+                      const d = new Date(e.target.value + "T12:00:00Z");
+                      await setPublishSchedule(col.id, d);
+                      fetchCollections();
+                    }
+                  }}
+                  className="bg-white/5 border border-white/10 rounded px-2 py-1 text-[11px] text-white/60 font-light"
+                  style={{ colorScheme: "dark" }}
+                />
+                <span className="text-[9px] text-white/20 font-light">
+                  displayed as: {col.publishAt ? `${col.publishAt.getMonth() + 1}.${col.publishAt.getDate()}` : `${col.createdAt.getMonth() + 1}.${col.createdAt.getDate()}`}
+                </span>
               </div>
             </div>
           );

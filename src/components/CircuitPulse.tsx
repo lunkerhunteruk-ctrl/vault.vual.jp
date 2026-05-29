@@ -3,69 +3,62 @@
 import { useRef, useEffect, useCallback } from "react";
 
 interface CircuitPulseProps {
-  triggerAt: number; // ms — when to fire the pulse
+  triggerAt: number;
   className?: string;
 }
 
-// A subtle circuit-like network that pulses outward from center
+// Subtle organic lines that draw outward from center — inspired by lufis brush strokes
+// but minimal: thin, transparent, delicate
 export function CircuitPulse({ triggerAt, className = "" }: CircuitPulseProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const triggered = useRef(false);
 
-  // Generate deterministic circuit paths from center
+  const rng = useCallback((seed: number) => {
+    const x = Math.sin(seed * 9301 + 49297) * 49297;
+    return x - Math.floor(x);
+  }, []);
+
+  // Generate smooth wave paths from center outward
   const generatePaths = useCallback((w: number, h: number) => {
     const cx = w / 2;
     const cy = h / 2;
-    const paths: { points: { x: number; y: number }[]; delay: number }[] = [];
+    const paths: { x: number; y: number }[][] = [];
 
-    const rng = (seed: number) => {
-      const x = Math.sin(seed * 9301 + 49297) * 49297;
-      return x - Math.floor(x);
-    };
-
-    // Create branching paths from center — evenly distributed in all directions
-    const numPaths = 16;
+    const numPaths = 5;
     for (let i = 0; i < numPaths; i++) {
-      // Fixed even spacing with tiny jitter to avoid perfect symmetry
-      const angle = (i / numPaths) * Math.PI * 2 + (rng(i * 7) - 0.5) * 0.15;
-      const segments: { x: number; y: number }[] = [{ x: cx, y: cy }];
-      let x = cx;
-      let y = cy;
-      const segCount = 3 + Math.floor(rng(i * 13) * 4);
+      const angle = (i / numPaths) * Math.PI * 2 + (rng(i * 7) - 0.5) * 0.5;
+      const points: { x: number; y: number }[] = [];
 
-      for (let s = 0; s < segCount; s++) {
-        // Longer segments for top/bottom (vertical) to fill the screen height
-        const isVertical = Math.abs(Math.sin(angle)) > 0.5;
-        const baseLen = isVertical ? 60 : 40;
-        const len = baseLen + rng(i * 100 + s * 17) * 80;
-        // Circuit paths: prefer horizontal/vertical with occasional diagonal
-        const snapAngle = rng(i * 50 + s * 31) < 0.3
-          ? angle + (rng(i * 70 + s) - 0.5) * 0.6
-          : Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+      // Path length — long enough to reach edges
+      const maxDist = Math.max(w, h) * 0.55;
+      const steps = 80;
 
-        x += Math.cos(snapAngle) * len;
-        y += Math.sin(snapAngle) * len;
-        segments.push({ x, y });
+      let heading = angle;
 
-        // Branch
-        if (rng(i * 200 + s * 41) < 0.35 && s < segCount - 1) {
-          const branchAngle = snapAngle + (rng(i * 300 + s) > 0.5 ? Math.PI / 2 : -Math.PI / 2);
-          const bLen = 20 + rng(i * 400 + s) * 50;
-          paths.push({
-            points: [
-              { x, y },
-              { x: x + Math.cos(branchAngle) * bLen, y: y + Math.sin(branchAngle) * bLen },
-            ],
-            delay: (s + 1) * 0.15 + 0.1,
-          });
-        }
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps;
+        const dist = t * maxDist;
+
+        // Gentle organic drift — sine waves layered at different frequencies
+        const drift1 = Math.sin(t * Math.PI * 2.5 + rng(i * 100) * 6) * 30;
+        const drift2 = Math.sin(t * Math.PI * 4.2 + rng(i * 200) * 6) * 12;
+        const drift3 = Math.sin(t * Math.PI * 7.1 + rng(i * 300) * 6) * 5;
+        const totalDrift = drift1 + drift2 + drift3;
+
+        // Perpendicular to heading for drift
+        const px = -Math.sin(heading);
+        const py = Math.cos(heading);
+
+        points.push({
+          x: cx + Math.cos(heading) * dist + px * totalDrift,
+          y: cy + Math.sin(heading) * dist + py * totalDrift,
+        });
       }
 
-      paths.push({ points: segments, delay: i * 0.06 });
+      paths.push(points);
     }
 
     return paths;
-  }, []);
+  }, [rng]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -84,93 +77,77 @@ export function CircuitPulse({ triggerAt, className = "" }: CircuitPulseProps) {
     const h = rect.height;
     const paths = generatePaths(w, h);
 
+    // Each path has its own draw timing
+    const pathTimings = paths.map((_, i) => ({
+      delay: i * 0.3 + rng(i * 50) * 0.2, // staggered start
+      drawDuration: 2.5 + rng(i * 60) * 1.5, // 2.5-4s to draw
+      fadeStart: 4.0, // start fading at 4s
+      fadeDuration: 2.0, // 2s to fully fade
+    }));
+
     let startTime: number | null = null;
     let raf: number;
 
     const timeout = setTimeout(() => {
-      triggered.current = true;
       startTime = performance.now();
 
       const animate = () => {
         if (!startTime) return;
-        const elapsed = (performance.now() - startTime) / 1000; // seconds
+        const elapsed = (performance.now() - startTime) / 1000;
 
         ctx.clearRect(0, 0, w, h);
 
-        // Get theme
         const isLight = document.documentElement.getAttribute("data-theme") === "light";
-        const baseColor = isLight ? [0, 0, 0] : [0, 212, 255];
+        const color = isLight ? "0, 0, 0" : "200, 200, 200";
 
-        for (const path of paths) {
-          const t = elapsed - path.delay;
-          if (t < 0) continue;
+        let anyActive = false;
 
-          const progress = Math.min(t / 1.2, 1); // 1.2s to draw each path
-          const fadeOut = elapsed > 2.5 ? Math.max(0, 1 - (elapsed - 2.5) / 2) : 1;
+        paths.forEach((points, i) => {
+          const timing = pathTimings[i];
+          const t = elapsed - timing.delay;
+          if (t < 0) { anyActive = true; return; }
 
-          if (fadeOut <= 0) continue;
+          const drawProgress = Math.min(t / timing.drawDuration, 1);
+          const fadeOut = elapsed > timing.fadeStart
+            ? Math.max(0, 1 - (elapsed - timing.fadeStart) / timing.fadeDuration)
+            : 1;
 
-          const totalLen = pathLength(path.points);
-          const drawLen = totalLen * easeOutCubic(progress);
+          if (fadeOut <= 0) return;
+          anyActive = true;
 
-          // Draw the path up to drawLen
+          const pointsToDraw = Math.floor(drawProgress * points.length);
+          if (pointsToDraw < 2) return;
+
+          // Draw the line
           ctx.beginPath();
-          let accLen = 0;
-          ctx.moveTo(path.points[0].x, path.points[0].y);
-
-          for (let i = 1; i < path.points.length; i++) {
-            const dx = path.points[i].x - path.points[i - 1].x;
-            const dy = path.points[i].y - path.points[i - 1].y;
-            const segLen = Math.sqrt(dx * dx + dy * dy);
-
-            if (accLen + segLen <= drawLen) {
-              ctx.lineTo(path.points[i].x, path.points[i].y);
-              accLen += segLen;
-            } else {
-              const remaining = drawLen - accLen;
-              const ratio = remaining / segLen;
-              ctx.lineTo(
-                path.points[i - 1].x + dx * ratio,
-                path.points[i - 1].y + dy * ratio
-              );
-              break;
-            }
+          ctx.moveTo(points[0].x, points[0].y);
+          for (let p = 1; p < pointsToDraw; p++) {
+            ctx.lineTo(points[p].x, points[p].y);
           }
 
-          const alpha = 0.08 * fadeOut;
-          ctx.strokeStyle = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${alpha})`;
-          ctx.lineWidth = 0.8;
+          const baseAlpha = 0.04 * fadeOut; // very subtle
+          ctx.strokeStyle = `rgba(${color}, ${baseAlpha})`;
+          ctx.lineWidth = 1.2;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
           ctx.stroke();
 
-          // Glow at the tip
-          if (progress < 1 && fadeOut > 0) {
-            const tipPos = getPointAtLength(path.points, drawLen);
-            const glowAlpha = 0.25 * fadeOut * (1 - progress);
-            const gradient = ctx.createRadialGradient(tipPos.x, tipPos.y, 0, tipPos.x, tipPos.y, 15);
-            gradient.addColorStop(0, `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${glowAlpha})`);
-            gradient.addColorStop(1, `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, 0)`);
+          // Soft glow at the drawing tip
+          if (drawProgress < 1 && fadeOut > 0.5) {
+            const tipIdx = Math.min(pointsToDraw - 1, points.length - 1);
+            const tip = points[tipIdx];
+            const glowAlpha = 0.08 * fadeOut * (1 - drawProgress * 0.5);
+            const gradient = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, 20);
+            gradient.addColorStop(0, `rgba(${color}, ${glowAlpha})`);
+            gradient.addColorStop(1, `rgba(${color}, 0)`);
             ctx.fillStyle = gradient;
             ctx.beginPath();
-            ctx.arc(tipPos.x, tipPos.y, 15, 0, Math.PI * 2);
+            ctx.arc(tip.x, tip.y, 20, 0, Math.PI * 2);
             ctx.fill();
           }
+        });
 
-          // Nodes at junctions
-          if (progress > 0.3) {
-            for (let i = 1; i < path.points.length - 1; i++) {
-              const nodeLen = pathLengthTo(path.points, i);
-              if (nodeLen <= drawLen) {
-                const nodeAlpha = 0.12 * fadeOut;
-                ctx.fillStyle = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${nodeAlpha})`;
-                ctx.beginPath();
-                ctx.arc(path.points[i].x, path.points[i].y, 1.5, 0, Math.PI * 2);
-                ctx.fill();
-              }
-            }
-          }
-        }
-
-        if (elapsed < 5) {
+        if (anyActive) {
           raf = requestAnimationFrame(animate);
         }
       };
@@ -182,7 +159,7 @@ export function CircuitPulse({ triggerAt, className = "" }: CircuitPulseProps) {
       clearTimeout(timeout);
       cancelAnimationFrame(raf);
     };
-  }, [triggerAt, generatePaths]);
+  }, [triggerAt, generatePaths, rng]);
 
   return (
     <canvas
@@ -191,46 +168,4 @@ export function CircuitPulse({ triggerAt, className = "" }: CircuitPulseProps) {
       style={{ width: "100%", height: "100%" }}
     />
   );
-}
-
-function easeOutCubic(t: number) {
-  return 1 - Math.pow(1 - t, 3);
-}
-
-function pathLength(points: { x: number; y: number }[]) {
-  let len = 0;
-  for (let i = 1; i < points.length; i++) {
-    const dx = points[i].x - points[i - 1].x;
-    const dy = points[i].y - points[i - 1].y;
-    len += Math.sqrt(dx * dx + dy * dy);
-  }
-  return len;
-}
-
-function pathLengthTo(points: { x: number; y: number }[], idx: number) {
-  let len = 0;
-  for (let i = 1; i <= idx; i++) {
-    const dx = points[i].x - points[i - 1].x;
-    const dy = points[i].y - points[i - 1].y;
-    len += Math.sqrt(dx * dx + dy * dy);
-  }
-  return len;
-}
-
-function getPointAtLength(points: { x: number; y: number }[], targetLen: number) {
-  let accLen = 0;
-  for (let i = 1; i < points.length; i++) {
-    const dx = points[i].x - points[i - 1].x;
-    const dy = points[i].y - points[i - 1].y;
-    const segLen = Math.sqrt(dx * dx + dy * dy);
-    if (accLen + segLen >= targetLen) {
-      const ratio = (targetLen - accLen) / segLen;
-      return {
-        x: points[i - 1].x + dx * ratio,
-        y: points[i - 1].y + dy * ratio,
-      };
-    }
-    accLen += segLen;
-  }
-  return points[points.length - 1];
 }

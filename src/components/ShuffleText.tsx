@@ -30,8 +30,13 @@ export function ShuffleText({
 
   const totalChars = lines.join("").replace(/ /g, "").length;
   const totalDurationMs = totalChars * stagger + 600; // extra for ink settle
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
+    // Only run once — never restart
+    if (completedRef.current) return;
+
     const timeout = setTimeout(() => {
       startTimeRef.current = performance.now();
       const tick = () => {
@@ -41,7 +46,7 @@ export function ShuffleText({
           rafRef.current = requestAnimationFrame(tick);
         } else if (!completedRef.current) {
           completedRef.current = true;
-          onComplete?.();
+          onCompleteRef.current?.();
         }
       };
       rafRef.current = requestAnimationFrame(tick);
@@ -51,7 +56,8 @@ export function ShuffleText({
       clearTimeout(timeout);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [startDelay, totalDurationMs, onComplete]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   let globalCharIndex = 0;
 

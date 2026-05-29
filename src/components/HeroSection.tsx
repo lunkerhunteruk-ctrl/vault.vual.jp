@@ -30,9 +30,8 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
     };
   }, [firstThemeId]);
 
-  // Total text chars (excluding spaces) * stagger + startDelay = when "INJECT YOUR DNA." finishes
-  // "OWNOTHING.INJECTYOURDNA." = 24 chars, stagger 50ms = ~1200ms + 500ms delay = ~1700ms
-  const pulseDelay = 1700;
+  // Particles start running at the same time as the typewriter
+  const pulseDelay = 500;
 
   return (
     <section className="h-screen flex flex-col items-center justify-center relative overflow-hidden">
