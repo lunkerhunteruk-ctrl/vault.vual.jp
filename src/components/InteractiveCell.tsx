@@ -124,7 +124,7 @@ export function InteractiveCell({ item, isVideo, style, onImageClick, onVideoCli
         )}
         {!isVideo && (
           <div
-            className="absolute inset-0 transition-all duration-300 flex items-end justify-center"
+            className="absolute inset-0 transition-all duration-300"
             onMouseEnter={(e) => {
               const el = e.currentTarget as HTMLElement;
               el.style.boxShadow = `inset 0 0 0 1.5px var(--vault-cyan)`;
@@ -136,21 +136,24 @@ export function InteractiveCell({ item, isVideo, style, onImageClick, onVideoCli
               el.dataset.hovered = "";
             }}
           >
-            <span
-              className="mb-3 text-[9px] tracking-[4px] font-light opacity-0 translate-y-2 transition-all duration-300 pointer-events-none"
-              style={{ color: "var(--vault-cyan)" }}
+            {/* Bottom bar + label — slides up on hover */}
+            <div
+              className="absolute bottom-0 left-0 right-0 flex items-center justify-center pointer-events-none transition-all duration-300"
+              style={{ height: 32, background: "rgba(0,0,0,0.45)", transform: "translateY(100%)", bottom: 4 }}
               ref={(el) => {
                 if (!el) return;
                 const parent = el.parentElement;
                 if (!parent) return;
-                const show = () => { el.style.opacity = "1"; el.style.transform = "translateY(0)"; };
-                const hide = () => { el.style.opacity = "0"; el.style.transform = "translateY(4px)"; };
+                const show = () => { el.style.transform = "translateY(0)"; };
+                const hide = () => { el.style.transform = "translateY(100%)"; };
                 parent.addEventListener("mouseenter", show);
                 parent.addEventListener("mouseleave", hide);
               }}
             >
-              {t("grid.tryOn")}
-            </span>
+              <span className="text-[9px] tracking-[4px] font-light" style={{ color: "#ffffff" }}>
+                {t("grid.tryOn")}
+              </span>
+            </div>
           </div>
         )}
       </div>

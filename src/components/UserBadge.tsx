@@ -5,11 +5,13 @@ import { useVaultStore } from "@/lib/store";
 import { signOutVault } from "@/lib/auth";
 import { AuthModal } from "./AuthModal";
 import { CreditSheet } from "./CreditSheet";
+import { MyVault } from "./MyVault";
 
 export function UserBadge() {
   const [open, setOpen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
+  const [showMyVault, setShowMyVault] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const user = useVaultStore((s) => s.user);
@@ -103,6 +105,17 @@ export function UserBadge() {
               </div>
             </div>
 
+            {/* My Vault */}
+            <button
+              onClick={() => {
+                setOpen(false);
+                setShowMyVault(true);
+              }}
+              className="w-full py-2.5 text-[10px] tracking-[3px] font-light border border-white/10 hover:border-white/25 text-white/50 rounded-lg transition-colors"
+            >
+              MY VAULT
+            </button>
+
             {/* Buy credits */}
             <button
               onClick={() => {
@@ -140,6 +153,11 @@ export function UserBadge() {
       <CreditSheet
         open={showCredits}
         onClose={() => setShowCredits(false)}
+      />
+
+      <MyVault
+        open={showMyVault}
+        onClose={() => setShowMyVault(false)}
       />
     </>
   );

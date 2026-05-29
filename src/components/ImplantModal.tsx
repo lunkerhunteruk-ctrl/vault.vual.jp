@@ -10,6 +10,7 @@ import { t } from "@/lib/i18n";
 import { applyFilmEffects } from "@/lib/film-effects";
 import { ShuffleText } from "./ShuffleText";
 import { decrementInjection, lookFileToId, getInjectionInfo } from "@/lib/injection-count";
+import { saveGenerationRecord } from "@/lib/generations";
 
 interface ImplantModalProps {
   image: (VaultMedia & { locationId: string }) | null;
@@ -148,6 +149,32 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
         const lookId = lookFileToId(image.file);
         const newRemaining = await decrementInjection(lookId);
         setSceneRemaining(newRemaining);
+
+        // Auto-save to My Vault (background, non-blocking)
+        if (user) {
+          fetch("/api/generations/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              imageDataUrl: withEffects,
+              userId: user.id,
+              lookFile: image.file,
+              city,
+            }),
+          })
+            .then((r) => r.json())
+            .then((saveData) => {
+              if (saveData.success && saveData.imageUrl) {
+                saveGenerationRecord({
+                  userId: user.id,
+                  imageUrl: saveData.imageUrl,
+                  lookFile: image.file,
+                  city,
+                }).catch(() => {});
+              }
+            })
+            .catch(() => {});
+        }
       } else {
         setError(data.error || "Generation failed");
         setState("select");

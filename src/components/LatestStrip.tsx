@@ -215,23 +215,26 @@ export function LatestStrip({ media, date, city, onImageClick, onVideoClick }: L
                   sizes="(max-width: 768px) 60vw, 30vw"
                   loading="eager"
                 />
-                {/* Hover/tap glow border + TRY ON label */}
+                {/* Hover/tap glow border + label */}
                 <div
-                  className="absolute inset-0 transition-all duration-300 pointer-events-none flex items-end justify-center"
+                  className="absolute inset-0 transition-all duration-300 pointer-events-none"
                   style={{
                     boxShadow: isActive ? `inset 0 0 0 1.5px var(--vault-cyan)` : "none",
                   }}
                 >
-                  <span
-                    className="mb-3 text-[9px] tracking-[4px] font-light transition-all duration-300"
+                  <div
+                    className="absolute bottom-0 left-0 right-0 flex items-center justify-center transition-transform duration-300"
                     style={{
-                      color: "var(--vault-cyan)",
-                      opacity: isActive ? 1 : 0,
-                      transform: isActive ? "translateY(0)" : "translateY(4px)",
+                      height: 32,
+                      bottom: 4,
+                      background: "rgba(0,0,0,0.45)",
+                      transform: isActive ? "translateY(0)" : "translateY(calc(100% + 4px))",
                     }}
                   >
-                    {t("grid.tryOn")}
-                  </span>
+                    <span className="text-[9px] tracking-[4px] font-light" style={{ color: "#ffffff" }}>
+                      {t("grid.tryOn")}
+                    </span>
+                  </div>
                 </div>
               </div>
             );
