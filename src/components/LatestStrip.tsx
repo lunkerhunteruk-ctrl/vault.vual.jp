@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { VaultMedia } from "@/data/types";
+import { t } from "@/lib/i18n";
 
 interface LatestStripProps {
   media: (VaultMedia & { locationId: string })[];
@@ -229,7 +230,7 @@ export function LatestStrip({ media, date, city, onImageClick, onVideoClick }: L
                       transform: isActive ? "translateY(0)" : "translateY(4px)",
                     }}
                   >
-                    TRY ON
+                    {t("grid.tryOn")}
                   </span>
                 </div>
               </div>

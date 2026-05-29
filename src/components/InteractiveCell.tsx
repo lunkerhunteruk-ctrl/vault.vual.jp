@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { VaultMedia } from "@/data/types";
 import { HlsVideo } from "./HlsVideo";
+import { t } from "@/lib/i18n";
 
 interface InteractiveCellProps {
   item: VaultMedia & { locationId: string };
@@ -148,7 +149,7 @@ export function InteractiveCell({ item, isVideo, style, onImageClick, onVideoCli
                 parent.addEventListener("mouseleave", hide);
               }}
             >
-              TRY ON
+              {t("grid.tryOn")}
             </span>
           </div>
         )}
