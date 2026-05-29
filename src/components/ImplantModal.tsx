@@ -49,6 +49,8 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
   const canGenerate = useVaultStore((s) => s.canGenerate);
   const incrementGeneration = useVaultStore((s) => s.incrementGeneration);
   const totalRemaining = useVaultStore((s) => s.totalRemaining);
+  const freeUsed = useVaultStore((s) => s.freeUsed);
+  const freeRemaining = useVaultStore((s) => s.freeRemaining);
 
   // Fetch scene injection info when image changes
   useEffect(() => {
@@ -126,29 +128,36 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
       await new Promise((r) => setTimeout(r, 500));
 
       if (data.success && data.resultImage) {
-        // Extract lot info from file path
-        // e.g. "https://...20-05-2026/look3.jpg" → date "5.20", lot "3/12"
         const dateMatch = image.file.match(/(\d{2})-(\d{2})-(\d{4})/);
-        const lookMatch = image.file.match(/look(\d+)\.jpg/);
         const filmDate = dateMatch ? `${dateMatch[1]}.${dateMatch[2]}.${dateMatch[3].slice(2)}` : "";
-        const lookNum = lookMatch ? lookMatch[1] : "1";
         const city = themeCity || "VAULT";
 
-        // Apply random film effects (flare + leak + edge print)
-        // Edition number: initial - remaining = how many have been made
-        // e.g. initial=12, remaining after this inject=10 → this is edition 2/12
-        const editionNum = sceneInitial - (sceneRemaining ?? sceneInitial) + 1;
+        // Determine if this is a free or paid generation
+        const isFreeGeneration = freeRemaining() > 0;
+
+        // Apply film effects — free gets SAMPLE, paid gets real edition number
+        let lot: string;
+        if (isFreeGeneration) {
+          lot = "SAMPLE — 000/000";
+        } else {
+          const editionNum = sceneInitial - (sceneRemaining ?? sceneInitial) + 1;
+          lot = `${String(editionNum).padStart(3, "0")}/${String(sceneInitial).padStart(3, "0")}`;
+        }
+
         const withEffects = await applyFilmEffects(data.resultImage, {
           title: `${city}  ${filmDate}`,
-          lot: `${String(editionNum).padStart(3, "0")}/${String(sceneInitial).padStart(3, "0")}`,
+          lot,
         });
         setState("result");
         setResultUrl(withEffects);
         incrementGeneration();
-        // Decrement shared injection count for this scene
-        const lookId = lookFileToId(image.file);
-        const newRemaining = await decrementInjection(lookId);
-        setSceneRemaining(newRemaining);
+
+        // Only consume scene injection count for paid generations
+        if (!isFreeGeneration) {
+          const lookId = lookFileToId(image.file);
+          const newRemaining = await decrementInjection(lookId);
+          setSceneRemaining(newRemaining);
+        }
 
         // Auto-save to My Vault (background, non-blocking)
         if (user) {
