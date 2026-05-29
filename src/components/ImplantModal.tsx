@@ -489,14 +489,15 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
                   <div className="flex-1 h-[1px] bg-white/10" />
                 </div>
 
-                {/* User photo upload */}
+                {/* User photo: camera on mobile, file upload on PC */}
                 <label className="flex items-center justify-center gap-2 py-3 border border-white/10 rounded-lg cursor-pointer hover:border-white/25 transition-colors">
                   <span className="text-[11px] tracking-[3px] text-white/50 font-light">
-                    {userPhoto ? "PHOTO LOADED" : "+ YOUR PHOTO"}
+                    {userPhoto ? t("implant.photoLoaded") : typeof navigator !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? t("implant.selfie") : t("implant.yourPhoto")}
                   </span>
                   <input
                     type="file"
                     accept="image/*"
+                    {...(typeof navigator !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? { capture: "user" } : {})}
                     onChange={handleUserPhoto}
                     className="hidden"
                   />

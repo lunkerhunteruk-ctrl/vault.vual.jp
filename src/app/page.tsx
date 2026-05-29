@@ -43,7 +43,7 @@ export default function VaultHome() {
   useEffect(() => {
     if (user?.id) {
       fetchCreditsFromFirestore(user.id).then((credits) => {
-        if (credits) syncCredits(credits.paidCredits, credits.freeUsed);
+        if (credits) syncCredits(credits.paidCredits, credits.freeUsed, credits.freeResetDate);
       });
     }
   }, [user?.id, syncCredits]);

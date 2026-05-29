@@ -64,19 +64,21 @@ export async function handleGoogleRedirectResult(): Promise<VaultUser | null> {
   return upsertUser(result.user);
 }
 
-export async function fetchCreditsFromFirestore(userId: string): Promise<{ paidCredits: number; freeUsed: number } | null> {
+export async function fetchCreditsFromFirestore(userId: string): Promise<{ paidCredits: number; freeUsed: number; freeResetDate?: string } | null> {
   if (!db) return null;
   const userRef = doc(db, 'vault_users', userId);
   const userDoc = await getDoc(userRef);
   if (!userDoc.exists()) return null;
   const data = userDoc.data();
-  return { paidCredits: data.paidCredits || 0, freeUsed: data.freeUsed || 0 };
+  return { paidCredits: data.paidCredits || 0, freeUsed: data.freeUsed || 0, freeResetDate: data.freeResetDate || undefined };
 }
 
-export async function syncCreditsToFirestore(userId: string, paidCredits: number, freeUsed: number): Promise<void> {
+export async function syncCreditsToFirestore(userId: string, paidCredits: number, freeUsed: number, freeResetDate?: string): Promise<void> {
   if (!db) return;
   const userRef = doc(db, 'vault_users', userId);
-  await updateDoc(userRef, { paidCredits, freeUsed, updatedAt: new Date() });
+  const update: Record<string, unknown> = { paidCredits, freeUsed, updatedAt: new Date() };
+  if (freeResetDate) update.freeResetDate = freeResetDate;
+  await updateDoc(userRef, update);
 }
 
 export async function signOutVault(): Promise<void> {

@@ -22,6 +22,11 @@ const dict = {
 
   // Grid
   "grid.tryOn": { ja: "試着する", en: "TRY ON" },
+
+  // ImplantModal - camera
+  "implant.selfie": { ja: "📸 セルフィーを撮る", en: "📸 TAKE A SELFIE" },
+  "implant.yourPhoto": { ja: "+ あなたの写真", en: "+ YOUR PHOTO" },
+  "implant.photoLoaded": { ja: "写真をセット済み", en: "PHOTO LOADED" },
 } as const;
 
 type Key = keyof typeof dict;

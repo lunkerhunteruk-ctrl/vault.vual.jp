@@ -87,9 +87,9 @@ export function UserBadge() {
                 CREDITS
               </p>
               <div className="flex justify-between text-[11px] font-light">
-                <span className="text-white/40">Free</span>
+                <span className="text-white/40">{navigator.language.startsWith("ja") ? "今日のフリー" : "Today's Free"}</span>
                 <span style={{ color: free > 0 ? "var(--vault-cyan)" : "rgba(255,255,255,0.2)" }}>
-                  {free}
+                  {free} / 5
                 </span>
               </div>
               <div className="flex justify-between text-[11px] font-light">
@@ -97,11 +97,6 @@ export function UserBadge() {
                 <span style={{ color: paidCredits > 0 ? "var(--vault-cyan)" : "rgba(255,255,255,0.2)" }}>
                   {paidCredits}
                 </span>
-              </div>
-              <div className="h-[1px] bg-white/5" />
-              <div className="flex justify-between text-[11px] font-light">
-                <span className="text-white/50">Total</span>
-                <span className="text-white/70">{total}</span>
               </div>
             </div>
 
