@@ -49,7 +49,7 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
         <p className="mt-4 text-[9px] tracking-[5px] font-light" style={{ color: "var(--vault-text-dim)" }}>
           by VUAL
         </p>
-        <div className="mt-6">
+        <div className="mt-4">
           <ThemeToggle />
         </div>
       </div>

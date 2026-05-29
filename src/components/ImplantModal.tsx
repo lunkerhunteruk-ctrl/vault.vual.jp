@@ -225,16 +225,17 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
         onClick={handleClose}
       >
         {/* Backdrop */}
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+        <div className="absolute inset-0 backdrop-blur-sm" style={{ background: "color-mix(in srgb, var(--vault-bg) 80%, transparent)" }} />
 
         {/* Modal sheet */}
         <div
-          className="relative w-full max-w-lg max-h-[90vh] bg-[#0d0d0d] border-t border-white/10 rounded-t-2xl overflow-y-auto animate-slide-up"
+          className="relative w-full max-w-lg max-h-[90vh] rounded-t-2xl overflow-y-auto animate-slide-up"
+          style={{ background: "var(--vault-bg)", borderTop: "1px solid var(--vault-border)" }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Handle bar */}
           <div className="flex justify-center pt-3 pb-2">
-            <div className="w-10 h-1 bg-white/20 rounded-full" />
+            <div className="w-10 h-1 rounded-full" style={{ background: "var(--vault-border)" }} />
           </div>
 
           {/* Image preview — aspect adapts to image */}
