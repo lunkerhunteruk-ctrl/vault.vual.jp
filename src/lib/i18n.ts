@@ -21,7 +21,7 @@ const dict = {
   "billing.noCredits": { ja: "クレジットが不足しています", en: "No credits remaining" },
 
   // Grid
-  "grid.tryOn": { ja: "試着する", en: "TRY ON" },
+  "grid.tryOn": { ja: "INJECT", en: "INJECT" },
 
   // ImplantModal - camera
   "implant.selfie": { ja: "📸 セルフィーを撮る", en: "📸 TAKE A SELFIE" },
