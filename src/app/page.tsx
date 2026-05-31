@@ -92,12 +92,8 @@ export default function VaultHome() {
 
   return (
     <main className="relative">
-      {/* TEST: minimal content */}
-      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p>VAULT TEST</p>
-      </div>
+      <HeroSection firstThemeId={themes[0]?.id} />
       <div style={{ height: "200vh", background: "red", opacity: 0.1 }} />
-
     </main>
   );
 }
