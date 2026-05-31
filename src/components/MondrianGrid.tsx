@@ -212,40 +212,75 @@ function videoPlus8Layout(): PlacedCell[] {
   ];
 }
 
-// Video (9:16) + 12 images. No overlap, no gaps.
-function videoPlus12Layout(): PlacedCell[] {
-  return [
-    // VIDEO: 6×8 (9:16)
-    { colStart: 1, colEnd: 7, rowStart: 1, rowEnd: 9 },
-    // i1-i4: 4 small right of video
-    { colStart: 7, colEnd: 10, rowStart: 1, rowEnd: 4 },
-    { colStart: 10, colEnd: 13, rowStart: 1, rowEnd: 4 },
-    { colStart: 7, colEnd: 10, rowStart: 4, rowEnd: 7 },
-    { colStart: 10, colEnd: 13, rowStart: 4, rowEnd: 7 },
-    // i5: 6×6 large right
-    { colStart: 7, colEnd: 13, rowStart: 7, rowEnd: 13 },
-    // i6-i7: 2 small below video
-    { colStart: 1, colEnd: 4, rowStart: 9, rowEnd: 12 },
-    { colStart: 4, colEnd: 7, rowStart: 9, rowEnd: 12 },
-    // i8: 6×6 large left
-    { colStart: 1, colEnd: 7, rowStart: 12, rowEnd: 18 },
-    // i9-i10: 2 small right
-    { colStart: 7, colEnd: 10, rowStart: 13, rowEnd: 16 },
-    { colStart: 10, colEnd: 13, rowStart: 13, rowEnd: 16 },
-    // i11: 6×6 large right
-    { colStart: 7, colEnd: 13, rowStart: 16, rowEnd: 22 },
-    // i12: 6×6 large left (negative space right)
-    { colStart: 1, colEnd: 7, rowStart: 18, rowEnd: 24 },
+// Video (3:4) + 12 images (all 3:4). 12-col grid, 4 patterns.
+function videoPlus12Portrait(patternIndex: number): PlacedCell[] {
+  const patterns: PlacedCell[][] = [
+    // Pattern A: video hero left + 2 small right, 3 equal, hero right + 2 small left, 3 equal, 2 equal bottom
+    [
+      { colStart: 1, colEnd: 8, rowStart: 1, rowEnd: 8 },     // VIDEO 7×7
+      { colStart: 8, colEnd: 13, rowStart: 1, rowEnd: 4 },    // i1 5×3
+      { colStart: 8, colEnd: 13, rowStart: 4, rowEnd: 8 },    // i2 5×4
+      { colStart: 1, colEnd: 5, rowStart: 8, rowEnd: 13 },    // i3 4×5
+      { colStart: 5, colEnd: 9, rowStart: 8, rowEnd: 13 },    // i4 4×5
+      { colStart: 9, colEnd: 13, rowStart: 8, rowEnd: 13 },   // i5 4×5
+      { colStart: 1, colEnd: 5, rowStart: 13, rowEnd: 16 },   // i6 4×3
+      { colStart: 5, colEnd: 13, rowStart: 13, rowEnd: 20 },  // i7 hero 8×7
+      { colStart: 1, colEnd: 5, rowStart: 16, rowEnd: 20 },   // i8 4×4
+      { colStart: 1, colEnd: 5, rowStart: 20, rowEnd: 25 },   // i9 4×5
+      { colStart: 5, colEnd: 9, rowStart: 20, rowEnd: 25 },   // i10 4×5
+      { colStart: 9, colEnd: 13, rowStart: 20, rowEnd: 25 },  // i11 4×5
+      { colStart: 1, colEnd: 13, rowStart: 25, rowEnd: 30 },  // i12 full 12×5
+    ],
+    // Pattern B: 3 equal, video hero + 2 small, 4 equal, hero left + 2 small right, 2 equal bottom
+    [
+      { colStart: 1, colEnd: 5, rowStart: 1, rowEnd: 6 },     // i1 4×5
+      { colStart: 5, colEnd: 9, rowStart: 1, rowEnd: 6 },     // i2 4×5
+      { colStart: 9, colEnd: 13, rowStart: 1, rowEnd: 6 },    // i3 4×5
+      { colStart: 1, colEnd: 8, rowStart: 6, rowEnd: 13 },    // VIDEO 7×7
+      { colStart: 8, colEnd: 13, rowStart: 6, rowEnd: 10 },   // i4 5×4
+      { colStart: 8, colEnd: 13, rowStart: 10, rowEnd: 13 },  // i5 5×3
+      { colStart: 1, colEnd: 4, rowStart: 13, rowEnd: 17 },   // i6 3×4
+      { colStart: 4, colEnd: 7, rowStart: 13, rowEnd: 17 },   // i7 3×4
+      { colStart: 7, colEnd: 10, rowStart: 13, rowEnd: 17 },  // i8 3×4
+      { colStart: 10, colEnd: 13, rowStart: 13, rowEnd: 17 }, // i9 3×4
+      { colStart: 1, colEnd: 7, rowStart: 17, rowEnd: 23 },   // i10 hero 6×6
+      { colStart: 7, colEnd: 13, rowStart: 17, rowEnd: 20 },  // i11 6×3
+      { colStart: 7, colEnd: 13, rowStart: 20, rowEnd: 23 },  // i12 6×3
+    ],
+    // Pattern C: full video, 4 equal, 2 hero, 3 equal, 2 equal bottom
+    [
+      { colStart: 1, colEnd: 13, rowStart: 1, rowEnd: 6 },    // VIDEO full 12×5
+      { colStart: 1, colEnd: 4, rowStart: 6, rowEnd: 10 },    // i1 3×4
+      { colStart: 4, colEnd: 7, rowStart: 6, rowEnd: 10 },    // i2 3×4
+      { colStart: 7, colEnd: 10, rowStart: 6, rowEnd: 10 },   // i3 3×4
+      { colStart: 10, colEnd: 13, rowStart: 6, rowEnd: 10 },  // i4 3×4
+      { colStart: 1, colEnd: 7, rowStart: 10, rowEnd: 17 },   // i5 hero 6×7
+      { colStart: 7, colEnd: 13, rowStart: 10, rowEnd: 17 },  // i6 hero 6×7
+      { colStart: 1, colEnd: 5, rowStart: 17, rowEnd: 22 },   // i7 4×5
+      { colStart: 5, colEnd: 9, rowStart: 17, rowEnd: 22 },   // i8 4×5
+      { colStart: 9, colEnd: 13, rowStart: 17, rowEnd: 22 },  // i9 4×5
+      { colStart: 1, colEnd: 7, rowStart: 22, rowEnd: 27 },   // i10 6×5
+      { colStart: 7, colEnd: 13, rowStart: 22, rowEnd: 27 },  // i11 6×5
+      { colStart: 1, colEnd: 13, rowStart: 27, rowEnd: 32 },  // i12 full 12×5
+    ],
+    // Pattern D: 2 hero top, video + 2 small, 3 equal, full wide, 3 equal bottom
+    [
+      { colStart: 1, colEnd: 7, rowStart: 1, rowEnd: 8 },     // i1 hero 6×7
+      { colStart: 7, colEnd: 13, rowStart: 1, rowEnd: 8 },    // i2 hero 6×7
+      { colStart: 1, colEnd: 5, rowStart: 8, rowEnd: 12 },    // i3 4×4
+      { colStart: 5, colEnd: 13, rowStart: 8, rowEnd: 15 },   // VIDEO 8×7
+      { colStart: 1, colEnd: 5, rowStart: 12, rowEnd: 15 },   // i4 4×3
+      { colStart: 1, colEnd: 5, rowStart: 15, rowEnd: 20 },   // i5 4×5
+      { colStart: 5, colEnd: 9, rowStart: 15, rowEnd: 20 },   // i6 4×5
+      { colStart: 9, colEnd: 13, rowStart: 15, rowEnd: 20 },  // i7 4×5
+      { colStart: 1, colEnd: 13, rowStart: 20, rowEnd: 24 },  // i8 full 12×4
+      { colStart: 1, colEnd: 5, rowStart: 24, rowEnd: 29 },   // i9 4×5
+      { colStart: 5, colEnd: 9, rowStart: 24, rowEnd: 29 },   // i10 4×5
+      { colStart: 9, colEnd: 13, rowStart: 24, rowEnd: 29 },  // i11 4×5
+      { colStart: 1, colEnd: 13, rowStart: 29, rowEnd: 34 },  // i12 full 12×5
+    ],
   ];
-  // r1-3:   VID(1-6) + i1(7-9) + i2(10-12)     = 12 ✓
-  // r4-6:   VID(1-6) + i3(7-9) + i4(10-12)     = 12 ✓
-  // r7-8:   VID(1-6) + i5(7-12)                 = 12 ✓
-  // r9-11:  i6(1-3) + i7(4-6) + i5(7-12)        = 12 ✓
-  // r12:    i8(1-6) + i5(7-12)                   = 12 ✓
-  // r13-15: i8(1-6) + i9(7-9) + i10(10-12)      = 12 ✓
-  // r16-17: i8(1-6) + i11(7-12)                  = 12 ✓
-  // r18-21: i12(1-6) + i11(7-12)                 = 12 ✓
-  // r22-23: i12(1-6) only                        = negative space ✓
+  return patterns[patternIndex % patterns.length];
 }
 
 function rowSpanForAspect(aspect: string, colSpan: number): number {
@@ -379,7 +414,8 @@ export function MondrianGrid({ media, collectionId, onImageClick, onVideoClick }
     // Instead, just use the preset — media order in sample.ts should match
     placements = layout6Mixed();
   } else if (hasVideo && imageCount === 12) {
-    placements = videoPlus12Layout();
+    const patternIdx = hashString(collectionId || 'default') % 4;
+    placements = videoPlus12Portrait(patternIdx);
   } else if (hasVideo && imageCount === 8) {
     placements = videoPlus8Layout();
   } else if (!hasVideo && imageCount === 7 && aspects.every(a => a === "3:4")) {
