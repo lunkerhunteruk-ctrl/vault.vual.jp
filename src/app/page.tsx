@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { HeroAnimations } from "@/components/HeroAnimations";
 
 function HeroSection() {
@@ -39,10 +38,7 @@ export default function VaultHome() {
   return (
     <main className="relative">
       <HeroSection />
-      <div style={{ height: "200vh", background: "red", opacity: 0.1 }} />
-      <Suspense fallback={null}>
-        <HeroAnimations />
-      </Suspense>
+      <HeroAnimations />
     </main>
   );
 }
