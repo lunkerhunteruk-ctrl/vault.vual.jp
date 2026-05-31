@@ -92,44 +92,12 @@ export default function VaultHome() {
 
   return (
     <main className="relative">
-      <UserBadge />
-      <HeroSection firstThemeId={themes[0]?.id} />
+      {/* TEST: minimal content */}
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p>VAULT TEST</p>
+      </div>
+      <div style={{ height: "200vh", background: "red", opacity: 0.1 }} />
 
-      {/* All collections — Mondrian grid */}
-      {themes.map((theme, idx) => (
-        <ThemeSection
-          key={theme.id}
-          theme={theme}
-          isLatest={idx === 0}
-          hasRecipe={theme.hasRecipe}
-          onImageClick={(img) => {
-            if (theme.hasRecipe) {
-              setSelectedImage(img);
-              setSelectedCity(theme.city);
-              setSelectedHasRecipe(true);
-              setSelectedTotalLooks(theme.locations.flatMap(l => l.media).filter(m => m.type === "image").length);
-            } else {
-              setLightboxSrc(img.file);
-            }
-          }}
-          onVideoClick={setVideoSrc}
-        />
-      ))}
-
-      <VideoModal src={videoSrc} onClose={() => setVideoSrc(null)} />
-
-      <ImplantModal
-        image={selectedImage}
-        entities={sampleEntities}
-        themeCity={selectedCity}
-        totalLooks={selectedTotalLooks}
-        onClose={() => { setSelectedImage(null); setSelectedHasRecipe(false); }}
-      />
-
-      <LightboxModal
-        src={lightboxSrc}
-        onClose={() => setLightboxSrc(null)}
-      />
     </main>
   );
 }
