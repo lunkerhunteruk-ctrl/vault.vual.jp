@@ -226,8 +226,20 @@ export default function AdminPage() {
             <div key={col.id} className="p-4 border border-white/10 rounded-lg space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[13px] text-white/70 font-light">{col.city}</p>
-                  <p className="text-[10px] text-white/25 font-light">
+                  <input
+                    type="text"
+                    defaultValue={col.city}
+                    onBlur={async (e) => {
+                      const newCity = e.target.value.trim();
+                      if (newCity && newCity !== col.city) {
+                        if (!db) return;
+                        await updateDoc(doc(db, "vault_collections", col.id), { city: newCity });
+                        fetchCollections();
+                      }
+                    }}
+                    className="text-[13px] text-white/70 font-light bg-transparent border-b border-white/10 hover:border-white/30 focus:border-white/50 outline-none w-full"
+                  />
+                  <p className="text-[10px] text-white/25 font-light mt-1">
                     {col.id} · {col.media.length} items
                   </p>
                 </div>
