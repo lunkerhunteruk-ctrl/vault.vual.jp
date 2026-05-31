@@ -21,26 +21,7 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
       {/* <CircuitPulse triggerAt={pulseDelay} /> */}
 
       <div className="text-center w-full px-6 relative z-10">
-        <p className="text-[11px] tracking-[8px] font-light mb-8" style={{ color: "var(--vault-text-dim)" }}>
-          VAULT
-        </p>
-
-        <p style={{ fontSize: "clamp(16px, 4vw, 32px)", letterSpacing: "clamp(5px, 1.5vw, 14px)", fontWeight: 300, lineHeight: 1.8 }}>
-          OWN NOTHING.<br />INJECT YOUR DNA.
-        </p>
-
-        <div className="mx-auto mt-8 w-[1px] h-8" style={{ background: "var(--vault-border)" }} />
-        <p className="mt-4 text-[9px] tracking-[5px] font-light" style={{ color: "var(--vault-text-dim)" }}>
-          by VUAL
-        </p>
-        <div className="mt-4">
-          <ThemeToggle />
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
-        <div className="w-[1px] h-8 animate-pulse" style={{ background: "var(--vault-border)" }} />
+        <p>VAULT TEST - NO COMPONENTS</p>
       </div>
     </section>
   );
