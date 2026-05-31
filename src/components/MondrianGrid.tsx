@@ -98,18 +98,102 @@ function layout4Images(): PlacedCell[] {
   // r7-12: C(1-6) + D(7-12) = 12 ✓
 }
 
-// 8 images (all 3:4). 12×15 grid, no overlap, no gaps.
-function layout8Images(): PlacedCell[] {
-  return [
-    { colStart: 1, colEnd: 7, rowStart: 1, rowEnd: 7 },
-    { colStart: 7, colEnd: 10, rowStart: 1, rowEnd: 4 },
-    { colStart: 10, colEnd: 13, rowStart: 1, rowEnd: 4 },
-    { colStart: 7, colEnd: 13, rowStart: 4, rowEnd: 10 },
-    { colStart: 1, colEnd: 4, rowStart: 7, rowEnd: 10 },
-    { colStart: 4, colEnd: 7, rowStart: 7, rowEnd: 10 },
-    { colStart: 1, colEnd: 7, rowStart: 10, rowEnd: 16 },
-    { colStart: 7, colEnd: 13, rowStart: 10, rowEnd: 16 },
+// 7 images (all 3:4). 12-col grid, no overlap, no gaps. 4 patterns.
+function layout7Portrait(patternIndex: number): PlacedCell[] {
+  const patterns: PlacedCell[][] = [
+    // Pattern A: 1 hero left + 2 small right, then 1 wide center, then 3 equal bottom
+    [
+      { colStart: 1, colEnd: 8, rowStart: 1, rowEnd: 9 },     // hero 7×8
+      { colStart: 8, colEnd: 13, rowStart: 1, rowEnd: 5 },    // small 5×4
+      { colStart: 8, colEnd: 13, rowStart: 5, rowEnd: 9 },    // small 5×4
+      { colStart: 1, colEnd: 13, rowStart: 9, rowEnd: 13 },   // wide 12×4
+      { colStart: 1, colEnd: 5, rowStart: 13, rowEnd: 19 },   // 4×6
+      { colStart: 5, colEnd: 9, rowStart: 13, rowEnd: 19 },   // 4×6
+      { colStart: 9, colEnd: 13, rowStart: 13, rowEnd: 19 },  // 4×6
+    ],
+    // Pattern B: 3 equal top, 2 hero middle, 2 small bottom
+    [
+      { colStart: 1, colEnd: 5, rowStart: 1, rowEnd: 6 },     // 4×5
+      { colStart: 5, colEnd: 9, rowStart: 1, rowEnd: 6 },     // 4×5
+      { colStart: 9, colEnd: 13, rowStart: 1, rowEnd: 6 },    // 4×5
+      { colStart: 1, colEnd: 7, rowStart: 6, rowEnd: 13 },    // hero 6×7
+      { colStart: 7, colEnd: 13, rowStart: 6, rowEnd: 13 },   // hero 6×7
+      { colStart: 1, colEnd: 7, rowStart: 13, rowEnd: 17 },   // 6×4
+      { colStart: 7, colEnd: 13, rowStart: 13, rowEnd: 17 },  // 6×4
+    ],
+    // Pattern C: 2 hero top, 2 small + 1 hero middle, 2 equal bottom
+    [
+      { colStart: 1, colEnd: 7, rowStart: 1, rowEnd: 8 },     // hero 6×7
+      { colStart: 7, colEnd: 13, rowStart: 1, rowEnd: 8 },    // hero 6×7
+      { colStart: 1, colEnd: 5, rowStart: 8, rowEnd: 12 },    // small 4×4
+      { colStart: 5, colEnd: 13, rowStart: 8, rowEnd: 15 },   // hero 8×7
+      { colStart: 1, colEnd: 5, rowStart: 12, rowEnd: 15 },   // small 4×3
+      { colStart: 1, colEnd: 7, rowStart: 15, rowEnd: 20 },   // medium 6×5
+      { colStart: 7, colEnd: 13, rowStart: 15, rowEnd: 20 },  // medium 6×5
+    ],
+    // Pattern D: 1 full hero, 3 equal, 1 full hero, 2 equal bottom
+    [
+      { colStart: 1, colEnd: 13, rowStart: 1, rowEnd: 6 },    // full hero 12×5
+      { colStart: 1, colEnd: 5, rowStart: 6, rowEnd: 10 },    // 4×4
+      { colStart: 5, colEnd: 9, rowStart: 6, rowEnd: 10 },    // 4×4
+      { colStart: 9, colEnd: 13, rowStart: 6, rowEnd: 10 },   // 4×4
+      { colStart: 1, colEnd: 13, rowStart: 10, rowEnd: 15 },  // full hero 12×5
+      { colStart: 1, colEnd: 7, rowStart: 15, rowEnd: 20 },   // 6×5
+      { colStart: 7, colEnd: 13, rowStart: 15, rowEnd: 20 },  // 6×5
+    ],
   ];
+  return patterns[patternIndex % patterns.length];
+}
+
+// 8 images (all 3:4). 12-col grid, no overlap, no gaps. 4 patterns.
+function layout8Portrait(patternIndex: number): PlacedCell[] {
+  const patterns: PlacedCell[][] = [
+    // Pattern A: 1 hero left + 2 small right, then 1 hero right + 2 small left, then 2 equal bottom
+    [
+      { colStart: 1, colEnd: 8, rowStart: 1, rowEnd: 8 },     // hero 7×7
+      { colStart: 8, colEnd: 13, rowStart: 1, rowEnd: 4 },    // small 5×3
+      { colStart: 8, colEnd: 13, rowStart: 4, rowEnd: 8 },    // small 5×4
+      { colStart: 1, colEnd: 5, rowStart: 8, rowEnd: 11 },    // small 4×3
+      { colStart: 5, colEnd: 13, rowStart: 8, rowEnd: 15 },   // hero 8×7
+      { colStart: 1, colEnd: 5, rowStart: 11, rowEnd: 15 },   // small 4×4
+      { colStart: 1, colEnd: 7, rowStart: 15, rowEnd: 20 },   // medium 6×5
+      { colStart: 7, colEnd: 13, rowStart: 15, rowEnd: 20 },  // medium 6×5
+    ],
+    // Pattern B: 3 equal top, 2 wide middle, 3 equal bottom
+    [
+      { colStart: 1, colEnd: 5, rowStart: 1, rowEnd: 6 },     // 4×5
+      { colStart: 5, colEnd: 9, rowStart: 1, rowEnd: 6 },     // 4×5
+      { colStart: 9, colEnd: 13, rowStart: 1, rowEnd: 6 },    // 4×5
+      { colStart: 1, colEnd: 7, rowStart: 6, rowEnd: 13 },    // hero 6×7
+      { colStart: 7, colEnd: 13, rowStart: 6, rowEnd: 13 },   // hero 6×7
+      { colStart: 1, colEnd: 5, rowStart: 13, rowEnd: 18 },   // 4×5
+      { colStart: 5, colEnd: 9, rowStart: 13, rowEnd: 18 },   // 4×5
+      { colStart: 9, colEnd: 13, rowStart: 13, rowEnd: 18 },  // 4×5
+    ],
+    // Pattern C: 2 tall left stack, 1 hero right, then 1 hero left, 2 small right stack, then 2 equal bottom
+    [
+      { colStart: 1, colEnd: 5, rowStart: 1, rowEnd: 5 },     // 4×4
+      { colStart: 1, colEnd: 5, rowStart: 5, rowEnd: 9 },     // 4×4
+      { colStart: 5, colEnd: 13, rowStart: 1, rowEnd: 9 },    // hero 8×8
+      { colStart: 1, colEnd: 8, rowStart: 9, rowEnd: 16 },    // hero 7×7
+      { colStart: 8, colEnd: 13, rowStart: 9, rowEnd: 12 },   // small 5×3
+      { colStart: 8, colEnd: 13, rowStart: 12, rowEnd: 16 },  // small 5×4
+      { colStart: 1, colEnd: 7, rowStart: 16, rowEnd: 21 },   // medium 6×5
+      { colStart: 7, colEnd: 13, rowStart: 16, rowEnd: 21 },  // medium 6×5
+    ],
+    // Pattern D: 1 full-width hero, 4 equal row, 1 full-width hero, 2 equal bottom
+    [
+      { colStart: 1, colEnd: 13, rowStart: 1, rowEnd: 6 },    // full hero 12×5
+      { colStart: 1, colEnd: 4, rowStart: 6, rowEnd: 10 },    // small 3×4
+      { colStart: 4, colEnd: 7, rowStart: 6, rowEnd: 10 },    // small 3×4
+      { colStart: 7, colEnd: 10, rowStart: 6, rowEnd: 10 },   // small 3×4
+      { colStart: 10, colEnd: 13, rowStart: 6, rowEnd: 10 },  // small 3×4
+      { colStart: 1, colEnd: 13, rowStart: 10, rowEnd: 15 },  // full hero 12×5
+      { colStart: 1, colEnd: 7, rowStart: 15, rowEnd: 20 },   // medium 6×5
+      { colStart: 7, colEnd: 13, rowStart: 15, rowEnd: 20 },  // medium 6×5
+    ],
+  ];
+  return patterns[patternIndex % patterns.length];
 }
 
 // Video (9:16) + 8 images. 12×16 grid, no overlap, no gaps.
@@ -298,8 +382,12 @@ export function MondrianGrid({ media, collectionId, onImageClick, onVideoClick }
     placements = videoPlus12Layout();
   } else if (hasVideo && imageCount === 8) {
     placements = videoPlus8Layout();
-  } else if (!hasVideo && imageCount === 8) {
-    placements = layout8Images();
+  } else if (!hasVideo && imageCount === 7 && aspects.every(a => a === "3:4")) {
+    const patternIdx = hashString(collectionId || 'default') % 4;
+    placements = layout7Portrait(patternIdx);
+  } else if (!hasVideo && imageCount === 8 && aspects.every(a => a === "3:4")) {
+    const patternIdx = hashString(collectionId || 'default') % 4;
+    placements = layout8Portrait(patternIdx);
   } else if (!hasVideo && imageCount === 4) {
     placements = layout4Images();
   } else {

@@ -3,15 +3,14 @@
  * Applied client-side to INJECT results with randomized probability.
  *
  * Leak (Outdoor): 40% none, 20% low, 20% mid, 20% high
- * Flare:          40% none, 20% low, 20% mid, 20% high
+ * Flare:          40% low, 30% mid, 30% high (always on)
  */
 
 function pickFlareIntensity(): number {
   const r = Math.random();
-  if (r < 0.3) return 0;       // none 30%
-  if (r < 0.6) return 1;       // low 30%
-  if (r < 0.8) return 2;       // mid 20%
-  return 3;                     // high 20%
+  if (r < 0.4) return 1;       // low 40%
+  if (r < 0.7) return 2;       // mid 30%
+  return 3;                     // high 30%
 }
 
 function addLightLeak(ctx: CanvasRenderingContext2D, w: number, h: number, multiplier: number) {
@@ -221,7 +220,7 @@ export function applyFilmEffects(
       const w = canvas.width;
       const h = canvas.height;
 
-      // Flare (30% none, 30% low, 20% mid, 20% high)
+      // Flare (40% low, 30% mid, 30% high — always on)
       const flareLevel = pickFlareIntensity();
       if (flareLevel > 0) {
         const multiplier = [0, 0.5, 1.0, 1.4][flareLevel];

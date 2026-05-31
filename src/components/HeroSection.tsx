@@ -34,7 +34,7 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
   const pulseDelay = 500;
 
   return (
-    <section className="h-screen flex flex-col items-center justify-center relative overflow-hidden">
+    <section className="flex flex-col items-center justify-center relative overflow-hidden" style={{ height: "100dvh" }}>
       {/* Circuit pulse background */}
       <CircuitPulse triggerAt={pulseDelay} />
 

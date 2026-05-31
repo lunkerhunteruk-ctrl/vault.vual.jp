@@ -31,7 +31,7 @@ export function ThemeSection({ theme, onImageClick, onVideoClick }: ThemeSection
   );
 
   return (
-    <section ref={ref} id={theme.id} className="min-h-screen">
+    <section ref={ref} id={theme.id} style={{ minHeight: "100dvh" }}>
       {/* Theme title */}
       <div className="h-[60vh] flex flex-col items-center justify-center">
         <div
