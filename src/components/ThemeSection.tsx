@@ -6,11 +6,13 @@ import { MondrianGrid } from "./MondrianGrid";
 
 interface ThemeSectionProps {
   theme: VaultTheme;
+  isLatest?: boolean;
+  hasRecipe?: boolean;
   onImageClick: (media: VaultMedia & { locationId: string }) => void;
   onVideoClick: (src: string) => void;
 }
 
-export function ThemeSection({ theme, onImageClick, onVideoClick }: ThemeSectionProps) {
+export function ThemeSection({ theme, isLatest, hasRecipe, onImageClick, onVideoClick }: ThemeSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
 
@@ -41,12 +43,36 @@ export function ThemeSection({ theme, onImageClick, onVideoClick }: ThemeSection
             transform: hasBeenVisible ? "translateY(0)" : "translateY(20px)",
           }}
         >
+          {/* LATEST badge */}
+          {isLatest && (
+            <p className="text-[10px] tracking-[5px] font-light mb-4" style={{ color: "var(--vault-cyan)" }}>
+              LATEST
+            </p>
+          )}
+
           <p className="text-[13px] tracking-[6px] font-light mb-4" style={{ color: "var(--vault-text-dim)" }}>
             {theme.date}
           </p>
-          <h2 className="font-light px-4 text-center" style={{ color: "var(--vault-text)", fontSize: "clamp(20px, 6vw, 42px)", letterSpacing: "clamp(6px, 2vw, 16px)" }}>
-            {theme.city}
-          </h2>
+
+          <div className="flex items-center justify-center gap-3 px-4">
+            <h2 className="font-light text-center" style={{ color: "var(--vault-text)", fontSize: "clamp(20px, 6vw, 42px)", letterSpacing: "clamp(6px, 2vw, 16px)" }}>
+              {theme.city}
+            </h2>
+
+            {/* INJECT badge */}
+            {hasRecipe && (
+              <span
+                className="text-[8px] tracking-[3px] font-light px-2 py-1 rounded-full flex-shrink-0"
+                style={{
+                  color: "var(--vault-cyan)",
+                  border: "1px solid var(--vault-cyan-dim)",
+                }}
+              >
+                INJECT
+              </span>
+            )}
+          </div>
+
           <div
             className="mx-auto mt-6 h-[1px] transition-all duration-1000 delay-300"
             style={{ background: "var(--vault-border)", width: hasBeenVisible ? 120 : 0 }}

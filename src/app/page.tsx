@@ -86,39 +86,13 @@ export default function VaultHome() {
       <UserBadge />
       <HeroSection firstThemeId={themes[0]?.id} />
 
-      {/* Latest collection — horizontal tape strip */}
-      {themes.length > 0 && (() => {
-        const latest = themes[0];
-        const latestMedia = latest.locations.flatMap((loc) =>
-          loc.media.map((m) => ({ ...m, locationId: loc.id }))
-        );
-        return (
-          <div id={latest.id}>
-            <LatestStrip
-              media={latestMedia}
-              date={latest.date}
-              city={latest.city}
-              onImageClick={(img) => {
-                if (latest.hasRecipe) {
-                  setSelectedImage(img);
-                  setSelectedCity(latest.city);
-                  setSelectedHasRecipe(true);
-                  setSelectedTotalLooks(latestMedia.filter(m => m.type === "image").length);
-                } else {
-                  setLightboxSrc(img.file);
-                }
-              }}
-              onVideoClick={setVideoSrc}
-            />
-          </div>
-        );
-      })()}
-
-      {/* Remaining collections — Mondrian grid */}
-      {themes.slice(1).map((theme) => (
+      {/* All collections — Mondrian grid */}
+      {themes.map((theme, idx) => (
         <ThemeSection
           key={theme.id}
           theme={theme}
+          isLatest={idx === 0}
+          hasRecipe={theme.hasRecipe}
           onImageClick={(img) => {
             if (theme.hasRecipe) {
               setSelectedImage(img);
