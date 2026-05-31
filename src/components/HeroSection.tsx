@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ShuffleText } from "./ShuffleText";
 import { ThemeToggle } from "./ThemeToggle";
 import { CircuitPulse } from "./CircuitPulse";
@@ -10,25 +10,7 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ firstThemeId }: HeroSectionProps) {
-  const scrolledRef = useRef(false);
   const [textDone, setTextDone] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => { scrolledRef.current = true; };
-    window.addEventListener("scroll", onScroll, { passive: true });
-
-    // Auto-scroll after animation completes (~3.5s)
-    const t = setTimeout(() => {
-      if (!scrolledRef.current && firstThemeId) {
-        document.getElementById(firstThemeId)?.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 4000);
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      clearTimeout(t);
-    };
-  }, [firstThemeId]);
 
   // Particles start running at the same time as the typewriter
   const pulseDelay = 500;
