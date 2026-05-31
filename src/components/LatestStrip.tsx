@@ -27,10 +27,10 @@ export function LatestStrip({ media, date, city, onImageClick, onVideoClick }: L
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  // Only show images (filter out videos for the strip)
-  const images = media.filter((m) => m.type === "image");
+  // All media (images + videos) in the strip
+  const items = media;
   // Duplicate for seamless loop
-  const loopImages = [...images, ...images, ...images];
+  const loopItems = [...items, ...items, ...items];
 
   // Fade in on scroll
   useEffect(() => {
@@ -74,7 +74,7 @@ export function LatestStrip({ media, date, city, onImageClick, onVideoClick }: L
   // Pause on hover (PC)
   const handleMouseEnter = (idx: number) => {
     pausedRef.current = true;
-    setHoveredIdx(idx % images.length);
+    setHoveredIdx(idx % items.length);
   };
 
   const handleMouseLeave = () => {
@@ -84,7 +84,7 @@ export function LatestStrip({ media, date, city, onImageClick, onVideoClick }: L
 
   // Mobile: tap to pause, second tap to open
   const handleTap = (idx: number, item: VaultMedia & { locationId: string }) => {
-    const realIdx = idx % images.length;
+    const realIdx = idx % items.length;
     if (tappedIdx === realIdx) {
       // Second tap → open
       if (item.type === "video") {
@@ -122,7 +122,7 @@ export function LatestStrip({ media, date, city, onImageClick, onVideoClick }: L
     return () => window.removeEventListener("touchstart", handler);
   }, []);
 
-  if (images.length === 0) return null;
+  if (items.length === 0) return null;
 
   return (
     <section
@@ -175,8 +175,8 @@ export function LatestStrip({ media, date, city, onImageClick, onVideoClick }: L
           className="flex h-full will-change-transform"
           style={{ gap: `${GAP}px` }}
         >
-          {loopImages.map((item, idx) => {
-            const realIdx = idx % images.length;
+          {loopItems.map((item, idx) => {
+            const realIdx = idx % items.length;
             const isHovered = hoveredIdx === realIdx;
             const isTapped = tappedIdx === realIdx;
             const isActive = isHovered || isTapped;
@@ -207,14 +207,25 @@ export function LatestStrip({ media, date, city, onImageClick, onVideoClick }: L
                   handleTap(idx, item);
                 }}
               >
-                <Image
-                  src={item.file}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 60vw, 30vw"
-                  loading="eager"
-                />
+                {item.type === "video" ? (
+                  <video
+                    src={item.file}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={item.file}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 60vw, 30vw"
+                    loading="eager"
+                  />
+                )}
                 {/* Hover/tap glow border + label */}
                 <div
                   className="absolute inset-0 transition-all duration-300 pointer-events-none"
@@ -232,7 +243,7 @@ export function LatestStrip({ media, date, city, onImageClick, onVideoClick }: L
                     }}
                   >
                     <span className="text-[9px] tracking-[4px] font-light" style={{ color: "#ffffff" }}>
-                      {t("grid.tryOn")}
+                      {item.type === "video" ? "▶ PLAY" : t("grid.tryOn")}
                     </span>
                   </div>
                 </div>
