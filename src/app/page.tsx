@@ -30,12 +30,16 @@ export default function VaultHome() {
   const user = useVaultStore((s) => s.user);
   const syncCredits = useVaultStore((s) => s.syncFromFirestore);
 
-  // Fetch published collections from Firestore — deferred to not block scroll
+  // Fetch published collections from Firestore
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => {
-      getPublishedCollections().then(setCollections);
-    }, 100);
-    return () => clearTimeout(t);
+    getPublishedCollections().then(setCollections);
+    // Delay rendering of collections until after first paint
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setReady(true);
+      });
+    });
   }, []);
 
   // Handle Google redirect result (mobile sign-in) — deferred
@@ -92,8 +96,44 @@ export default function VaultHome() {
 
   return (
     <main className="relative">
+      <UserBadge />
       <HeroSection firstThemeId={themes[0]?.id} />
-      <div style={{ height: "200vh", background: "red", opacity: 0.1 }} />
+
+      {/* All collections — Mondrian grid (deferred render) */}
+      {ready && themes.map((theme, idx) => (
+        <ThemeSection
+          key={theme.id}
+          theme={theme}
+          isLatest={idx === 0}
+          hasRecipe={theme.hasRecipe}
+          onImageClick={(img) => {
+            if (theme.hasRecipe) {
+              setSelectedImage(img);
+              setSelectedCity(theme.city);
+              setSelectedHasRecipe(true);
+              setSelectedTotalLooks(theme.locations.flatMap(l => l.media).filter(m => m.type === "image").length);
+            } else {
+              setLightboxSrc(img.file);
+            }
+          }}
+          onVideoClick={setVideoSrc}
+        />
+      ))}
+
+      <VideoModal src={videoSrc} onClose={() => setVideoSrc(null)} />
+
+      <ImplantModal
+        image={selectedImage}
+        entities={sampleEntities}
+        themeCity={selectedCity}
+        totalLooks={selectedTotalLooks}
+        onClose={() => { setSelectedImage(null); setSelectedHasRecipe(false); }}
+      />
+
+      <LightboxModal
+        src={lightboxSrc}
+        onClose={() => setLightboxSrc(null)}
+      />
     </main>
   );
 }
