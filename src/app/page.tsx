@@ -39,7 +39,8 @@ export default function VaultHome() {
     <main className="relative">
       <HeroSection />
       <HeroAnimations />
-      <div id="vault-content-root" />
+      {/* Spacer ensures scrollable area exists before Firebase loads */}
+      <div id="vault-content-root" style={{ minHeight: "100vh" }} />
     </main>
   );
 }
