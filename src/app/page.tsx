@@ -24,48 +24,18 @@ export default function VaultHome() {
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [selectedHasRecipe, setSelectedHasRecipe] = useState(false);
-  const setUser = useVaultStore((s) => s.setUser);
 
-  const addPaidCredits = useVaultStore((s) => s.addPaidCredits);
-  const user = useVaultStore((s) => s.user);
-  const syncCredits = useVaultStore((s) => s.syncFromFirestore);
+  /* ── ALL HOOKS DISABLED FOR SCROLL TEST ── */
+  const setUser = () => {};
+  const addPaidCredits = () => {};
+  const user = null as any;
+  const syncCredits = () => {};
+  const ready = false;
 
-  // Fetch published collections from Firestore
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    getPublishedCollections().then(setCollections);
-    // Delay rendering of collections until after first paint
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setReady(true);
-      });
-    });
-  }, []);
-
-  // Handle Google redirect result (mobile sign-in) — deferred
-  useEffect(() => {
-    const t = setTimeout(() => {
-      handleGoogleRedirectResult().then((u) => {
-        if (u) setUser(u);
-      });
-    }, 2000);
-    return () => clearTimeout(t);
-  }, [setUser]);
-
-  // Sync credits from Firestore on page load (when already logged in) — deferred
-  useEffect(() => {
-    if (user?.id) {
-      const t = setTimeout(() => {
-        fetchCreditsFromFirestore(user.id).then((credits) => {
-          if (credits) syncCredits(credits.paidCredits, credits.freeUsed, credits.freeResetDate, credits.points);
-        });
-      }, 2500);
-      return () => clearTimeout(t);
-    }
-  }, [user?.id, syncCredits]);
+  /* ── ALL useEffects disabled ── */
 
   // Handle credit purchase success
-  useEffect(() => {
+  /*useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("credit_success") === "true") {
       const credits = parseInt(params.get("credits") || "0", 10);
@@ -77,7 +47,7 @@ export default function VaultHome() {
     if (params.get("credit_canceled") === "true") {
       window.history.replaceState({}, "", "/");
     }
-  }, [addPaidCredits]);
+  }, [addPaidCredits]);*/
 
   // Convert VaultCollection to VaultTheme format for ThemeSection
   const themes = collections.map((col) => ({
