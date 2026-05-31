@@ -17,8 +17,8 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
 
   return (
     <section className="flex flex-col items-center justify-center relative overflow-hidden" style={{ height: "100dvh" }}>
-      {/* Circuit pulse background */}
-      <CircuitPulse triggerAt={pulseDelay} />
+      {/* Circuit pulse background — disabled for performance test */}
+      {/* <CircuitPulse triggerAt={pulseDelay} /> */}
 
       <div className="text-center w-full px-6 relative z-10">
         <p className="text-[11px] tracking-[8px] font-light mb-8" style={{ color: "var(--vault-text-dim)" }}>
