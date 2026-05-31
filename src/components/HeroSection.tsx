@@ -16,7 +16,7 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
   const pulseDelay = 500;
 
   return (
-    <section className="flex flex-col items-center justify-center relative" style={{ height: "100dvh" }}>
+    <section className="flex flex-col items-center justify-center relative" style={{ height: "90vh" }}>
       {/* Circuit pulse background — disabled for performance test */}
       {/* <CircuitPulse triggerAt={pulseDelay} /> */}
 
