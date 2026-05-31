@@ -1,6 +1,6 @@
 import { Suspense } from "react";
+import { HeroAnimations } from "@/components/HeroAnimations";
 
-// HeroSection is a Server Component — zero JS, instant render
 function HeroSection() {
   return (
     <section className="flex flex-col items-center justify-center relative" style={{ height: "100dvh" }}>
@@ -8,7 +8,6 @@ function HeroSection() {
         <p className="text-[11px] tracking-[8px] font-light mb-8" style={{ color: "var(--vault-text-dim)" }}>
           VAULT
         </p>
-
         <div
           style={{
             fontFamily: "var(--font-mono), 'Courier New', 'SF Mono', monospace",
@@ -24,14 +23,11 @@ function HeroSection() {
           <div>OWN NOTHING.</div>
           <div>INJECT YOUR DNA.</div>
         </div>
-
         <div className="mx-auto mt-8 w-[1px] h-8" style={{ background: "var(--vault-border)" }} />
         <p className="mt-4 text-[9px] tracking-[5px] font-light" style={{ color: "var(--vault-text-dim)" }}>
           by VUAL
         </p>
       </div>
-
-      {/* Scroll indicator */}
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
         <div className="w-[1px] h-8 animate-pulse" style={{ background: "var(--vault-border)" }} />
       </div>
@@ -39,15 +35,13 @@ function HeroSection() {
   );
 }
 
-// Client components loaded lazily inside Suspense — does not block scroll
-import { DeferredContent } from "@/components/DeferredContent";
-
 export default function VaultHome() {
   return (
     <main className="relative">
       <HeroSection />
+      <div style={{ height: "200vh", background: "red", opacity: 0.1 }} />
       <Suspense fallback={null}>
-        <DeferredContent />
+        <HeroAnimations />
       </Suspense>
     </main>
   );
