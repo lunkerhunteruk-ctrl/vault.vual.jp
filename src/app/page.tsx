@@ -1,14 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import dynamic from "next/dynamic";
+import { HeroSection } from "@/components/HeroSection";
+
+// Firebase-dependent content loaded asynchronously — does not block initial render/scroll
+const VaultContent = dynamic(
+  () => import("@/components/VaultContent").then(m => ({ default: m.VaultContent })),
+  { ssr: false }
+);
 
 export default function VaultHome() {
   return (
     <main className="relative">
-      <section className="flex flex-col items-center justify-center relative" style={{ height: "90vh" }}>
-        <p>VAULT - ZERO IMPORTS TEST</p>
-      </section>
-      <div style={{ height: "200vh", background: "red", opacity: 0.1 }} />
+      <HeroSection />
+      <VaultContent />
     </main>
   );
 }
