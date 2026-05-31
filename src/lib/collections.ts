@@ -8,6 +8,7 @@ export interface VaultCollection {
   published: boolean;
   publishAt: Date | null;  // BST scheduled publish time
   createdAt: Date;
+  hasRecipe?: boolean;     // true = INJECT enabled, false/undefined = gallery only
   media: {
     file: string;          // R2 URL
     previewFile?: string;  // optional video preview for grid
@@ -37,6 +38,7 @@ export async function getPublishedCollections(): Promise<VaultCollection[]> {
         published,
         publishAt,
         createdAt: data.createdAt?.toDate?.() || new Date(),
+        hasRecipe: data.hasRecipe ?? false,
         media: data.media || [],
       });
     }
@@ -66,6 +68,7 @@ export async function getAllCollections(): Promise<VaultCollection[]> {
       published: data.published ?? false,
       publishAt: data.publishAt?.toDate?.() || null,
       createdAt: data.createdAt?.toDate?.() || new Date(),
+      hasRecipe: data.hasRecipe ?? false,
       media: data.media || [],
     });
   });

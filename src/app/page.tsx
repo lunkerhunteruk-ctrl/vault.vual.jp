@@ -12,6 +12,7 @@ import { VideoModal } from "@/components/VideoModal";
 import { HeroSection } from "@/components/HeroSection";
 import { LatestStrip } from "@/components/LatestStrip";
 import { getPublishedCollections, formatCollectionDate, VaultCollection } from "@/lib/collections";
+import { LightboxModal } from "@/components/LightboxModal";
 
 export default function VaultHome() {
   const [collections, setCollections] = useState<VaultCollection[]>([]);
@@ -21,6 +22,8 @@ export default function VaultHome() {
   const [selectedCity, setSelectedCity] = useState<string>("");
   const [selectedTotalLooks, setSelectedTotalLooks] = useState<number>(12);
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [selectedHasRecipe, setSelectedHasRecipe] = useState(false);
   const setUser = useVaultStore((s) => s.setUser);
 
   const addPaidCredits = useVaultStore((s) => s.addPaidCredits);
@@ -68,6 +71,7 @@ export default function VaultHome() {
     id: col.id,
     date: formatCollectionDate(col),
     city: col.city,
+    hasRecipe: col.hasRecipe ?? false,
     locations: [{
       id: col.id,
       name: col.city,
@@ -95,9 +99,14 @@ export default function VaultHome() {
               date={latest.date}
               city={latest.city}
               onImageClick={(img) => {
-                setSelectedImage(img);
-                setSelectedCity(latest.city);
-                setSelectedTotalLooks(latestMedia.filter(m => m.type === "image").length);
+                if (latest.hasRecipe) {
+                  setSelectedImage(img);
+                  setSelectedCity(latest.city);
+                  setSelectedHasRecipe(true);
+                  setSelectedTotalLooks(latestMedia.filter(m => m.type === "image").length);
+                } else {
+                  setLightboxSrc(img.file);
+                }
               }}
               onVideoClick={setVideoSrc}
             />
@@ -111,9 +120,14 @@ export default function VaultHome() {
           key={theme.id}
           theme={theme}
           onImageClick={(img) => {
-            setSelectedImage(img);
-            setSelectedCity(theme.city);
-            setSelectedTotalLooks(theme.locations.flatMap(l => l.media).filter(m => m.type === "image").length);
+            if (theme.hasRecipe) {
+              setSelectedImage(img);
+              setSelectedCity(theme.city);
+              setSelectedHasRecipe(true);
+              setSelectedTotalLooks(theme.locations.flatMap(l => l.media).filter(m => m.type === "image").length);
+            } else {
+              setLightboxSrc(img.file);
+            }
           }}
           onVideoClick={setVideoSrc}
         />
@@ -126,7 +140,12 @@ export default function VaultHome() {
         entities={sampleEntities}
         themeCity={selectedCity}
         totalLooks={selectedTotalLooks}
-        onClose={() => setSelectedImage(null)}
+        onClose={() => { setSelectedImage(null); setSelectedHasRecipe(false); }}
+      />
+
+      <LightboxModal
+        src={lightboxSrc}
+        onClose={() => setLightboxSrc(null)}
       />
     </main>
   );
