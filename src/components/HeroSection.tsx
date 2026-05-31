@@ -25,14 +25,9 @@ export function HeroSection({ firstThemeId }: HeroSectionProps) {
           VAULT
         </p>
 
-        <ShuffleText
-          lines={["OWN NOTHING.", "INJECT YOUR DNA."]}
-          startDelay={500}
-          stagger={50}
-          fontSize="clamp(16px, 4vw, 32px)"
-          letterSpacing="clamp(5px, 1.5vw, 14px)"
-          onComplete={() => setTextDone(true)}
-        />
+        <p style={{ fontSize: "clamp(16px, 4vw, 32px)", letterSpacing: "clamp(5px, 1.5vw, 14px)", fontWeight: 300, lineHeight: 1.8 }}>
+          OWN NOTHING.<br />INJECT YOUR DNA.
+        </p>
 
         <div className="mx-auto mt-8 w-[1px] h-8" style={{ background: "var(--vault-border)" }} />
         <p className="mt-4 text-[9px] tracking-[5px] font-light" style={{ color: "var(--vault-text-dim)" }}>
