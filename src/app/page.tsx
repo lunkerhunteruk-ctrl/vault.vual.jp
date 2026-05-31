@@ -66,7 +66,7 @@ export default function VaultHome() {
 
   return (
     <main className="relative">
-      <UserBadge />
+      {/* <UserBadge /> */}
       <HeroSection firstThemeId={themes[0]?.id} />
 
       {/* All collections — Mondrian grid (deferred render) */}
