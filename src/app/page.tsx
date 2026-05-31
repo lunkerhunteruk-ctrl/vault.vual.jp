@@ -30,24 +30,33 @@ export default function VaultHome() {
   const user = useVaultStore((s) => s.user);
   const syncCredits = useVaultStore((s) => s.syncFromFirestore);
 
-  // Fetch published collections from Firestore
+  // Fetch published collections from Firestore — deferred to not block scroll
   useEffect(() => {
-    getPublishedCollections().then(setCollections);
+    const t = setTimeout(() => {
+      getPublishedCollections().then(setCollections);
+    }, 100);
+    return () => clearTimeout(t);
   }, []);
 
-  // Handle Google redirect result (mobile sign-in)
+  // Handle Google redirect result (mobile sign-in) — deferred
   useEffect(() => {
-    handleGoogleRedirectResult().then((u) => {
-      if (u) setUser(u);
-    });
+    const t = setTimeout(() => {
+      handleGoogleRedirectResult().then((u) => {
+        if (u) setUser(u);
+      });
+    }, 2000);
+    return () => clearTimeout(t);
   }, [setUser]);
 
-  // Sync credits from Firestore on page load (when already logged in)
+  // Sync credits from Firestore on page load (when already logged in) — deferred
   useEffect(() => {
     if (user?.id) {
-      fetchCreditsFromFirestore(user.id).then((credits) => {
-        if (credits) syncCredits(credits.paidCredits, credits.freeUsed, credits.freeResetDate, credits.points);
-      });
+      const t = setTimeout(() => {
+        fetchCreditsFromFirestore(user.id).then((credits) => {
+          if (credits) syncCredits(credits.paidCredits, credits.freeUsed, credits.freeResetDate, credits.points);
+        });
+      }, 2500);
+      return () => clearTimeout(t);
     }
   }, [user?.id, syncCredits]);
 
