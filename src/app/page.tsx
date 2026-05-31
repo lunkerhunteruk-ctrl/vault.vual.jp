@@ -22,7 +22,7 @@ function HeroSection() {
             display: "inline-block",
             opacity: 0,
             color: "var(--vault-text)",
-            animation: `charStrike 200ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms forwards`,
+            animation: `charStrike 400ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms forwards`,
           }}
         >
           {char}
@@ -34,9 +34,10 @@ function HeroSection() {
     <section className="flex flex-col items-center justify-center relative" style={{ height: "100dvh" }}>
       <style>{`
         @keyframes charStrike {
-          0% { opacity: 0; transform: scale(1.15); }
-          40% { opacity: 1; transform: scale(1.02); }
-          100% { opacity: 1; transform: scale(1); }
+          0% { opacity: 0; transform: scale(1.15); text-shadow: none; }
+          30% { opacity: 1; transform: scale(1.04); text-shadow: 0 0 8px rgba(var(--vault-ink-rgb), 0.4); }
+          50% { opacity: 1; transform: scale(1); text-shadow: 0 0 4px rgba(var(--vault-ink-rgb), 0.25); }
+          100% { opacity: 1; transform: scale(1); text-shadow: none; }
         }
       `}</style>
       <div className="text-center w-full px-6 relative z-10">
