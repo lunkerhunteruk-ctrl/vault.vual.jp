@@ -39,6 +39,7 @@ export default function VaultHome() {
     <main className="relative">
       <HeroSection />
       <HeroAnimations />
+      <div id="vault-content-root" />
     </main>
   );
 }
