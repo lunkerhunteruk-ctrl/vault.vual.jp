@@ -197,7 +197,7 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     // Guest must sign up to export
     if (!user) {
       setShowAuth(true);
@@ -208,14 +208,26 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
     try {
       const fileName = `vault-inject-${Date.now()}.jpg`;
 
-      // Convert data URL to blob for reliable download
+      // Convert data URL to blob
       const [header, b64] = resultUrl.split(",");
       const mime = header?.match(/:(.*?);/)?.[1] || "image/jpeg";
       const bin = atob(b64);
       const arr = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
       const blob = new Blob([arr], { type: mime });
+      const file = new File([blob], fileName, { type: mime });
 
+      // iOS Safari: use Web Share API to save to camera roll
+      if (navigator.share && /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        try {
+          await navigator.share({ files: [file] });
+          return;
+        } catch {
+          // User cancelled or share failed — fall through to download
+        }
+      }
+
+      // Desktop / Android: standard download
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -223,7 +235,6 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
       document.body.appendChild(link);
       link.click();
 
-      // Delay cleanup so browser has time to start download
       setTimeout(() => {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
