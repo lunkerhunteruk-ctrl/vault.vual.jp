@@ -71,8 +71,8 @@ export async function POST(request: NextRequest) {
       inline_data: { mime_type: entityData.mimeType, data: entityData.data },
     });
 
-    // Recipe reference images from R2 (garment, shoes, jacket, extras)
-    for (const name of ['garment.jpeg', 'shoes.jpeg', 'jacket.jpeg', 'extra2.jpeg']) {
+    // Recipe reference images from R2 (garment + any additional refs)
+    for (const name of ['garment.jpeg', 'ref2.jpeg', 'ref3.jpeg', 'ref4.jpeg', 'ref5.jpeg', 'ref6.jpeg', 'shoes.jpeg', 'jacket.jpeg', 'extra2.jpeg']) {
       const buf = await fetchR2File(`${recipeBase}/${name}`);
       if (buf) {
         imageParts.push({
@@ -81,7 +81,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const parts = [{ text: prompt }, ...imageParts];
+    // Images first, then prompt text — Gemini recognizes garments better this way
+    const parts = [...imageParts, { text: prompt }];
+    console.log(`[INJECT] ${recipeBase} — ${imageParts.length} images (1 face + ${imageParts.length - 1} garments)`);
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
