@@ -387,7 +387,15 @@ export default function AdminPage() {
                           <div className="absolute top-1 left-1 px-1 py-0.5 bg-black/60 rounded text-[7px] text-white/50">VIDEO</div>
                         </div>
                       ) : (
-                        <img src={m.file} className="aspect-[3/4] w-full object-cover" loading="lazy" />
+                        <div className="aspect-[3/4] relative">
+                          <img src={m.file} className="w-full h-full object-cover" loading="lazy" />
+                          {(() => {
+                            const lookMatch = m.file.match(/look(\d+)/);
+                            return lookMatch ? (
+                              <div className="absolute top-1 left-1 px-1 py-0.5 bg-black/60 rounded text-[7px] text-yellow-400/70">L{lookMatch[1]}</div>
+                            ) : null;
+                          })()}
+                        </div>
                       )}
                       <button
                         onClick={async (e) => {
