@@ -269,7 +269,7 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center"
+        className="fixed inset-0 z-50 flex items-center justify-center p-8"
         onClick={handleClose}
       >
         {/* Backdrop */}
@@ -277,8 +277,8 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
 
         {/* Modal sheet */}
         <div
-          className="relative w-[calc(100%-32px)] max-w-lg max-h-[85vh] rounded-2xl overflow-y-auto animate-slide-up"
-          style={{ background: "var(--vault-bg)", border: "1px solid var(--vault-border)", margin: "16px" }}
+          className="relative w-full max-w-lg max-h-[80vh] rounded-2xl overflow-y-auto animate-slide-up"
+          style={{ background: "var(--vault-bg)", border: "1px solid var(--vault-border)" }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Handle bar */}
