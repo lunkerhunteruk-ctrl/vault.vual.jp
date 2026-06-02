@@ -46,6 +46,7 @@ export default function AdminPage() {
   const [previewImg, setPreviewImg] = useState<string | null>(null);
   const [openColls, setOpenColls] = useState<Set<string>>(new Set());
   const [openInjGroups, setOpenInjGroups] = useState<Set<string>>(new Set());
+  const [tierFilter, setTierFilter] = useState<"all" | "high" | "daily">("all");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -171,14 +172,43 @@ export default function AdminPage() {
     injGroups[groupName].push([lookId, data]);
   }
 
+  // Build a map from injection group name to tier (by matching against colls)
+  const groupTierMap: Record<string, string | undefined> = {};
+  for (const groupName of Object.keys(injGroups)) {
+    const matchedColl = colls.find((c) => c.id === groupName || c.id.startsWith(groupName) || groupName.startsWith(c.id));
+    groupTierMap[groupName] = matchedColl?.tier;
+  }
+
+  const filteredInjGroups = Object.entries(injGroups).filter(([groupName]) => {
+    if (tierFilter === "all") return true;
+    return groupTierMap[groupName] === tierFilter;
+  });
+
   return (
     <div className="vault-admin min-h-screen bg-[#0a0a0a] text-white p-8">
-      <h1 className="text-[14px] tracking-[6px] text-white/40 font-light mb-8">
+      <h1 className="text-[14px] tracking-[6px] text-white/40 font-light mb-4">
         VAULT ADMIN — INJECTION COUNTS
       </h1>
 
+      {/* Tier filter tabs (shared with collections) */}
+      <div className="flex gap-1 mb-6 max-w-2xl">
+        {(["all", "high", "daily"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTierFilter(t)}
+            className={`px-4 py-1.5 text-[10px] tracking-[3px] font-light rounded cursor-pointer transition-colors ${
+              tierFilter === t
+                ? "bg-white/15 text-white/80"
+                : "bg-white/5 text-white/30 hover:text-white/50"
+            }`}
+          >
+            {t.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-2 max-w-2xl">
-        {Object.entries(injGroups).map(([groupName, items]) => {
+        {filteredInjGroups.map(([groupName, items]) => {
           const isOpen = openInjGroups.has(groupName);
           const totalRemaining = items.reduce((sum, [, d]) => sum + d.remaining, 0);
           return (
@@ -194,6 +224,13 @@ export default function AdminPage() {
                 <div className="flex items-center gap-3">
                   <span className="text-[10px] text-white/20">{isOpen ? "▼" : "▶"}</span>
                   <span className="text-[12px] text-white/60 font-light">{groupName}</span>
+                  {groupTierMap[groupName] && (
+                    <span className={`text-[7px] tracking-[1px] font-light px-1.5 py-0.5 rounded ${
+                      groupTierMap[groupName] === "high" ? "bg-purple-500/15 text-purple-400/60" : "bg-cyan-500/15 text-cyan-400/60"
+                    }`}>
+                      {groupTierMap[groupName]!.toUpperCase()}
+                    </span>
+                  )}
                   <span className="text-[10px] text-white/25">{items.length} looks</span>
                 </div>
                 <span className="text-[14px] tabular-nums font-light" style={{ color: totalRemaining > 0 ? "var(--vault-cyan)" : "rgba(255,255,255,0.2)" }}>
@@ -245,7 +282,10 @@ export default function AdminPage() {
       </h2>
 
       <div className="space-y-2 max-w-2xl">
-        {colls.map((col) => {
+        {colls.filter((col) => {
+          if (tierFilter === "all") return true;
+          return (col as any).tier === tierFilter;
+        }).map((col) => {
           const now = new Date();
           const isScheduled = col.publishAt && col.publishAt > now;
           const isLive = col.published && (!col.publishAt || col.publishAt <= now);
@@ -270,6 +310,13 @@ export default function AdminPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
+                  {(col as any).tier && (
+                    <span className={`text-[8px] tracking-[2px] font-light px-2 py-0.5 rounded ${
+                      (col as any).tier === "high" ? "bg-purple-500/15 text-purple-400/70" : "bg-cyan-500/15 text-cyan-400/70"
+                    }`}>
+                      {((col as any).tier as string).toUpperCase()}
+                    </span>
+                  )}
                   <span className={`text-[9px] tracking-[2px] font-light px-2 py-1 rounded ${
                     isLive ? "bg-green-500/20 text-green-400" :
                     isScheduled ? "bg-yellow-500/20 text-yellow-400" :
@@ -324,6 +371,41 @@ export default function AdminPage() {
                   <p className="text-[10px] text-white/25 font-light mt-1">
                     {col.id}
                   </p>
+                </div>
+              </div>
+
+              {/* Tier selector */}
+              <div className="flex items-center gap-3">
+                <span className="text-[9px] tracking-[1px] text-white/25">TIER</span>
+                <div className="flex gap-1">
+                  {(["none", "high", "daily"] as const).map((t) => {
+                    const currentTier = (col as any).tier || "none";
+                    const isActive = currentTier === t;
+                    return (
+                      <button
+                        key={t}
+                        onClick={async () => {
+                          if (!db) return;
+                          const { deleteField } = await import("firebase/firestore");
+                          if (t === "none") {
+                            await updateDoc(doc(db, "vault_collections", col.id), { tier: deleteField() });
+                          } else {
+                            await updateDoc(doc(db, "vault_collections", col.id), { tier: t });
+                          }
+                          fetchCollections();
+                        }}
+                        className={`px-3 py-1 text-[9px] tracking-[2px] rounded cursor-pointer transition-colors ${
+                          isActive
+                            ? t === "high" ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                            : t === "daily" ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
+                            : "bg-white/10 text-white/50 border border-white/20"
+                            : "border border-white/10 text-white/20 hover:text-white/40"
+                        }`}
+                      >
+                        {t.toUpperCase()}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

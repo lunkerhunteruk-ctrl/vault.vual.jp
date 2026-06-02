@@ -10,6 +10,7 @@ export interface VaultCollection {
   publishAt: Date | null;  // BST scheduled publish time
   createdAt: Date;
   hasRecipe?: boolean;     // true = INJECT enabled, false/undefined = gallery only
+  tier?: "high" | "daily"; // "high" = vault.vual.jp, "daily" = vual.jp/daily
   media: {
     file: string;          // R2 URL
     previewFile?: string;  // optional video preview for grid
@@ -21,7 +22,8 @@ export interface VaultCollection {
 }
 
 // Fetch all published collections (publishAt <= now)
-export async function getPublishedCollections(): Promise<VaultCollection[]> {
+// tier filter: "high" = high-end only, "daily" = daily only, undefined = all (backward compat)
+export async function getPublishedCollections(tier?: "high" | "daily"): Promise<VaultCollection[]> {
   if (!db) return [];
   const snapshot = await getDocs(collection(db, 'vault_collections'));
   const now = new Date();
@@ -34,6 +36,11 @@ export async function getPublishedCollections(): Promise<VaultCollection[]> {
 
     // Show if published=true AND (no schedule OR schedule has passed)
     if (published && (!publishAt || publishAt <= now)) {
+      const docTier = data.tier || undefined;
+
+      // Tier filter: if specified, only show matching tier
+      if (tier && docTier !== tier) return;
+
       results.push({
         id: d.id,
         city: data.city || '',
@@ -73,6 +80,7 @@ export async function getAllCollections(): Promise<VaultCollection[]> {
       publishAt: data.publishAt?.toDate?.() || null,
       createdAt: data.createdAt?.toDate?.() || new Date(),
       hasRecipe: data.hasRecipe ?? false,
+      tier: data.tier || undefined,
       media: data.media || [],
     });
   });

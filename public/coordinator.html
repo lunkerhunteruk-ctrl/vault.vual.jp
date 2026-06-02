@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAULT Coordinate Creator</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #fff;
+    color: #111;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    flex-shrink: 0;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header h1 {
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 6px;
+    color: rgba(0,0,0,0.5);
+    text-transform: uppercase;
+  }
+  .collection-id {
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    color: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.04);
+    padding: 4px 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.12);
+  }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .btn {
+    padding: 6px 16px;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    border: 1px solid rgba(0,0,0,0.18);
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(0,0,0,0.5);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover { border-color: rgba(0,0,0,0.35); color: rgba(0,0,0,0.8); }
+  .btn-save {
+    border-color: rgba(34,197,94,0.5);
+    color: rgba(34,150,80,0.8);
+  }
+  .btn-save:hover { border-color: rgba(34,197,94,0.8); color: rgba(34,150,80,1); background: rgba(34,197,94,0.08); }
+  .btn-save:disabled { opacity: 0.3; cursor: not-allowed; }
+  .gear-btn {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(0,0,0,0.3);
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .gear-btn:hover { border-color: rgba(0,0,0,0.25); color: rgba(0,0,0,0.6); }
+
+  /* ── Size popup ── */
+  .size-popup {
+    display: none;
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 6px;
+    padding: 8px;
+    z-index: 100;
+    gap: 4px;
+    flex-direction: column;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .size-popup.show { display: flex; }
+  .size-opt {
+    padding: 6px 20px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgba(0,0,0,0.5);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .size-opt:hover { background: rgba(0,0,0,0.04); color: rgba(0,0,0,0.7); }
+  .size-opt.active { color: rgba(34,150,80,0.9); }
+
+  /* ── Drop zone ── */
+  .drop-zone {
+    border: 2px dashed rgba(0,0,0,0.1);
+    border-radius: 8px;
+    margin: 16px 20px;
+    padding: 20px;
+    min-height: 450px;
+    max-height: 75vh;
+    overflow-y: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+    align-content: flex-start;
+    transition: border-color 0.2s, background 0.2s;
+    flex-shrink: 0;
+  }
+  .drop-zone.over {
+    border-color: rgba(34,197,94,0.5);
+    background: rgba(34,197,94,0.03);
+  }
+  .drop-zone-label {
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: rgba(0,0,0,0.25);
+    padding: 30px 0;
+    pointer-events: none;
+  }
+  .drop-zone .thumb {
+    width: 130px;
+    height: 173px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: grab;
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .drop-zone .thumb:hover { transform: scale(1.05); border-color: rgba(0,0,0,0.3); }
+  .drop-zone .thumb.selected { border-color: rgba(34,197,94,0.7); border-width: 2px; box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
+  .drop-zone .thumb-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .drop-zone .thumb-name {
+    font-size: 8px;
+    color: rgba(0,0,0,0.45);
+    text-align: center;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .drop-zone .thumb-remove {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(239,68,68,0.8);
+    color: #fff;
+    font-size: 9px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    line-height: 1;
+  }
+  .drop-zone .thumb-wrap:hover .thumb-remove { display: flex; }
+
+  /* ── Looks grid ── */
+  .looks-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px 20px;
+  }
+  .looks-grid {
+    display: grid;
+    gap: 16px;
+  }
+  .looks-grid.cols-6 { grid-template-columns: repeat(6, 1fr); }
+  .looks-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .looks-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+  .look-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .look-header {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    color: rgba(0,0,0,0.45);
+    text-transform: uppercase;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .look-clear {
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: rgba(239,68,68,0.4);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 2px 6px;
+  }
+  .look-clear:hover { color: rgba(239,68,68,0.8); }
+
+  .look-slot {
+    aspect-ratio: 3/4;
+    border: 1px dashed rgba(0,0,0,0.1);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .look-slot.over {
+    border-color: rgba(34,197,94,0.5);
+    background: rgba(34,197,94,0.04);
+  }
+  .look-slot.filled {
+    border-style: solid;
+    border-color: rgba(0,0,0,0.1);
+  }
+  .look-slot.slot-selected {
+    border-color: rgba(34,197,94,0.7) !important;
+    box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
+  }
+  .look-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .look-slot .slot-label {
+    font-size: 10px;
+    color: rgba(0,0,0,0.18);
+    letter-spacing: 1px;
+  }
+  .look-slot .slot-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    color: rgba(0,0,0,0.5);
+    font-size: 11px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.15);
+  }
+  .look-slot.filled:hover .slot-remove { display: flex; }
+
+  /* ── Add column ── */
+  .add-col-btn {
+    margin: 12px 20px;
+    padding: 8px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgba(0,0,0,0.3);
+    border: 1px dashed rgba(0,0,0,0.1);
+    border-radius: 6px;
+    background: none;
+    cursor: pointer;
+    width: fit-content;
+    flex-shrink: 0;
+  }
+  .add-col-btn:hover { border-color: rgba(0,0,0,0.25); color: rgba(0,0,0,0.5); }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(34,197,94,0.9);
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 200;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── Crop Modal ── */
+  .crop-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 300;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .crop-overlay.show { display: flex; }
+  .crop-container {
+    position: relative;
+    max-width: 80vw;
+    max-height: 75vh;
+    cursor: crosshair;
+  }
+  .crop-container img {
+    max-width: 80vw;
+    max-height: 75vh;
+    display: block;
+  }
+  .crop-rect {
+    position: absolute;
+    border: 2px solid rgba(34,197,94,0.9);
+    background: rgba(34,197,94,0.08);
+    pointer-events: none;
+    display: none;
+  }
+  .crop-buttons {
+    display: flex;
+    gap: 12px;
+  }
+  .crop-buttons button {
+    padding: 8px 24px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+  }
+  .crop-buttons button:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+  .crop-buttons .crop-apply {
+    border-color: rgba(34,197,94,0.5);
+    color: rgba(34,197,94,0.8);
+  }
+  .crop-buttons .crop-apply:hover { background: rgba(34,197,94,0.1); color: rgba(34,197,94,1); }
+  .crop-hint {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 1px;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>Coordinate Creator</h1>
+    <span class="collection-id" id="collectionId"></span>
+  </div>
+  <div class="header-right">
+    <span id="lookCount" style="font-size:11px; letter-spacing:2px; color:rgba(0,0,0,0.35);">0 LOOKS</span>
+    <div style="display:flex; gap:2px; margin-right:4px;">
+      <button class="btn tier-btn" id="tierHigh" onclick="setTier('high')" style="padding:5px 12px; font-size:9px; letter-spacing:2px; border-color:rgba(147,51,234,0.3); color:rgba(147,51,234,0.5);">HIGH</button>
+      <button class="btn tier-btn" id="tierDaily" onclick="setTier('daily')" style="padding:5px 12px; font-size:9px; letter-spacing:2px; border-color:rgba(0,180,220,0.5); color:rgba(0,180,220,0.8); background:rgba(0,180,220,0.08);">DAILY</button>
+    </div>
+    <button class="btn" onclick="clearAll()" style="border-color:rgba(239,68,68,0.3); color:rgba(239,68,68,0.5);">CLEAR ALL</button>
+    <button class="btn btn-save" id="saveBtn" disabled onclick="saveCollection()">SAVE</button>
+    <div style="position:relative">
+      <button class="gear-btn" onclick="toggleSizeMenu()">⚙</button>
+      <div class="size-popup" id="sizePopup">
+        <button class="size-opt" onclick="setSize('sm')">SMALL</button>
+        <button class="size-opt active" onclick="setSize('md')">MEDIUM</button>
+        <button class="size-opt" onclick="setSize('lg')">LARGE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Drop zone -->
+<div class="drop-zone" id="dropZone">
+  <div class="drop-zone-label" id="dropLabel">ドラッグ＆ドロップでファイルを追加</div>
+</div>
+
+<!-- Looks grid -->
+<div class="looks-container" id="looksContainer">
+  <div class="looks-grid cols-6" id="looksGrid"></div>
+</div>
+
+<!-- Add column -->
+<button class="add-col-btn" id="addColBtn" onclick="addSlotRow()">＋ 行を追加</button>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Crop Modal -->
+<div class="crop-overlay" id="cropOverlay">
+  <p class="crop-hint">ドラッグで範囲選択 → CROP で適用</p>
+  <div class="crop-container" id="cropContainer">
+    <img id="cropImg" />
+    <div class="crop-rect" id="cropRect"></div>
+  </div>
+  <div class="crop-buttons">
+    <button onclick="closeCrop()">CANCEL</button>
+    <button class="crop-apply" id="cropApplyBtn" onclick="applyCrop()" disabled>CROP</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════
+
+const SLOT_NAMES = ['image 1', 'image 2', 'image 3', 'image 4'];
+const SIZES = { sm: 4, md: 3, lg: 2 }; // rows per slot height ratio
+
+let sourceFiles = []; // { id, name, file, dataUrl }
+let lookCount = 6;
+let maxSlots = 4; // rows per look column
+let looks = []; // looks[i] = [{ id, name, dataUrl, file }, null, null, null]
+let currentSize = 'md';
+let fileIdCounter = 0;
+let dirHandle = null; // File System Access API handle
+let selectedSourceIds = new Set(); // multi-select in source panel
+let selectedSlots = new Set(); // multi-select in look slots "col:row"
+let currentTier = 'daily'; // 'high' or 'daily'
+
+// Collection ID from date
+function generateCollectionId() {
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  return `${dd}-${mm}-${yyyy}_${hh}${min}`;
+}
+
+const collectionId = generateCollectionId();
+document.getElementById('collectionId').textContent = collectionId;
+
+// Init looks
+function initLooks() {
+  looks = [];
+  for (let i = 0; i < lookCount; i++) {
+    looks.push(new Array(maxSlots).fill(null));
+  }
+  renderLooks();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDERING
+// ══════════════════════════════════════════════════════════════════
+
+function renderLooks() {
+  const grid = document.getElementById('looksGrid');
+  grid.innerHTML = '';
+
+  // Always 6 columns
+  grid.className = 'looks-grid cols-6';
+
+  for (let col = 0; col < lookCount; col++) {
+    const colDiv = document.createElement('div');
+    colDiv.className = 'look-col';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'look-header';
+    header.innerHTML = `<span>Look ${String(col + 1).padStart(2, '0')}</span>`;
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'look-clear';
+    clearBtn.textContent = 'CLEAR';
+    clearBtn.onclick = () => { looks[col] = new Array(maxSlots).fill(null); renderLooks(); updateSaveState(); };
+    header.appendChild(clearBtn);
+    colDiv.appendChild(header);
+
+    // Slots
+    for (let row = 0; row < maxSlots; row++) {
+      const slot = document.createElement('div');
+      slot.className = 'look-slot' + (looks[col][row] ? ' filled' : '');
+      slot.dataset.col = col;
+      slot.dataset.row = row;
+
+      const slotKey = `${col}:${row}`;
+      if (looks[col][row]) {
+        const img = document.createElement('img');
+        img.src = looks[col][row].dataUrl;
+        img.draggable = true;
+
+        if (selectedSlots.has(slotKey)) slot.classList.add('slot-selected');
+
+        img.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (e.metaKey || e.ctrlKey) {
+            if (selectedSlots.has(slotKey)) selectedSlots.delete(slotKey);
+            else selectedSlots.add(slotKey);
+          } else {
+            if (selectedSlots.has(slotKey) && selectedSlots.size === 1) {
+              selectedSlots.clear();
+            } else {
+              selectedSlots.clear();
+              selectedSlots.add(slotKey);
+            }
+          }
+          renderLooks();
+        });
+
+        img.addEventListener('dragstart', (e) => {
+          // If dragging a selected slot, drag all selected
+          if (!selectedSlots.has(slotKey)) {
+            selectedSlots.clear();
+            selectedSlots.add(slotKey);
+            renderLooks();
+          }
+          e.dataTransfer.setData('text/plain', '');
+          e.dataTransfer.setData('slot-source', [...selectedSlots].join('|'));
+          e.dataTransfer.effectAllowed = 'copy';
+        });
+        slot.appendChild(img);
+
+        const removeBtn = document.createElement('div');
+        removeBtn.className = 'slot-remove';
+        removeBtn.textContent = '×';
+        removeBtn.onclick = (e) => { e.stopPropagation(); looks[col][row] = null; renderLooks(); updateSaveState(); };
+        slot.appendChild(removeBtn);
+      } else {
+        const label = document.createElement('span');
+        label.className = 'slot-label';
+        label.textContent = SLOT_NAMES[row] || `extra${row}`;
+        slot.appendChild(label);
+      }
+
+      // Drop events
+      slot.addEventListener('dragover', (e) => { e.preventDefault(); slot.classList.add('over'); });
+      slot.addEventListener('dragleave', () => slot.classList.remove('over'));
+      slot.addEventListener('drop', (e) => {
+        e.preventDefault();
+        slot.classList.remove('over');
+        const fileId = e.dataTransfer.getData('text/plain');
+        const isMulti = e.dataTransfer.getData('multi-source');
+        const slotSource = e.dataTransfer.getData('slot-source');
+
+        // From other slot(s)
+        if (slotSource) {
+          const slots = slotSource.split('|');
+          let slotRow = row;
+          for (const s of slots) {
+            if (slotRow >= maxSlots) break;
+            const [srcCol, srcRow] = s.split(':').map(Number);
+            if (looks[srcCol]?.[srcRow]) {
+              looks[col][slotRow] = { ...looks[srcCol][srcRow] };
+              slotRow++;
+            }
+          }
+          selectedSlots.clear();
+          renderLooks();
+          updateSaveState();
+          return;
+        }
+
+        // Multi-select drop: fill consecutive slots starting from this one
+        if (isMulti && fileId.includes(',')) {
+          const ids = fileId.split(',');
+          let slotRow = row;
+          for (const id of ids) {
+            if (slotRow >= maxSlots) break;
+            const src = sourceFiles.find(f => f.id === id);
+            if (src) {
+              looks[col][slotRow] = { ...src };
+              slotRow++;
+            }
+          }
+          selectedSourceIds.clear();
+          renderSourceFiles();
+          renderLooks();
+          updateSaveState();
+          return;
+        }
+
+        // Single source file
+        const src = sourceFiles.find(f => f.id === fileId);
+        if (src) {
+          looks[col][row] = { ...src };
+          renderLooks();
+          updateSaveState();
+        }
+      });
+
+      colDiv.appendChild(slot);
+    }
+
+    grid.appendChild(colDiv);
+  }
+
+  // Update count
+  const usedLooks = looks.filter(l => l.some(s => s !== null)).length;
+  document.getElementById('lookCount').textContent = `${usedLooks} LOOK${usedLooks !== 1 ? 'S' : ''}`;
+}
+
+function updateSaveState() {
+  const usedLooks = looks.filter(l => l[0] !== null).length; // at least garment
+  document.getElementById('saveBtn').disabled = usedLooks === 0;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// DROP ZONE (source files)
+// ══════════════════════════════════════════════════════════════════
+
+const dropZone = document.getElementById('dropZone');
+
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('over');
+
+  const files = Array.from(e.dataTransfer.files).filter(f =>
+    f.type.startsWith('image/') || /\.(jpe?g|png|webp)$/i.test(f.name)
+  );
+
+  for (const file of files) {
+    const id = `file-${fileIdCounter++}`;
+    const dataUrl = await readFileAsDataUrl(file);
+    sourceFiles.push({ id, name: file.name, file, dataUrl });
+  }
+
+  renderSourceFiles();
+});
+
+// Also support click to add
+dropZone.addEventListener('click', async (e) => {
+  if (e.target !== dropZone && !e.target.classList.contains('drop-zone-label')) return;
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.multiple = true;
+  input.accept = 'image/*';
+  input.onchange = async () => {
+    const files = Array.from(input.files);
+    for (const file of files) {
+      const id = `file-${fileIdCounter++}`;
+      const dataUrl = await readFileAsDataUrl(file);
+      sourceFiles.push({ id, name: file.name, file, dataUrl });
+    }
+    renderSourceFiles();
+  };
+  input.click();
+});
+
+function renderSourceFiles() {
+  // Remove label if files exist
+  const label = document.getElementById('dropLabel');
+  if (label && sourceFiles.length > 0) label.style.display = 'none';
+  if (label && sourceFiles.length === 0) label.style.display = '';
+
+  // Remove existing thumbs
+  dropZone.querySelectorAll('.thumb-wrap').forEach(el => el.remove());
+
+  const thumbSizes = { sm: { w: 90, h: 120 }, md: { w: 130, h: 173 }, lg: { w: 180, h: 240 } };
+  const ts = thumbSizes[currentSize];
+
+  for (const src of sourceFiles) {
+    const wrap = document.createElement('div');
+    wrap.className = 'thumb-wrap';
+
+    const img = document.createElement('img');
+    img.className = 'thumb' + (selectedSourceIds.has(src.id) ? ' selected' : '');
+    img.src = src.dataUrl;
+    img.style.width = `${ts.w}px`;
+    img.style.height = `${ts.h}px`;
+    img.draggable = true;
+
+    // Cmd+click for multi-select, plain click for single select
+    img.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (e.metaKey || e.ctrlKey) {
+        if (selectedSourceIds.has(src.id)) selectedSourceIds.delete(src.id);
+        else selectedSourceIds.add(src.id);
+      } else {
+        if (selectedSourceIds.has(src.id) && selectedSourceIds.size === 1) {
+          selectedSourceIds.clear();
+        } else {
+          selectedSourceIds.clear();
+          selectedSourceIds.add(src.id);
+        }
+      }
+      renderSourceFiles();
+    });
+
+    img.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      openCrop(src.id);
+    });
+
+    img.addEventListener('dragstart', (e) => {
+      // If dragging a selected item, drag all selected
+      if (!selectedSourceIds.has(src.id)) {
+        selectedSourceIds.clear();
+        selectedSourceIds.add(src.id);
+        renderSourceFiles();
+      }
+      e.dataTransfer.setData('text/plain', [...selectedSourceIds].join(','));
+      e.dataTransfer.setData('multi-source', 'true');
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+    wrap.appendChild(img);
+
+    const name = document.createElement('div');
+    name.className = 'thumb-name';
+    name.textContent = src.name;
+    name.style.maxWidth = `${ts.w}px`;
+    wrap.appendChild(name);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'thumb-remove';
+    removeBtn.textContent = '×';
+    removeBtn.onclick = () => {
+      sourceFiles = sourceFiles.filter(f => f.id !== src.id);
+      renderSourceFiles();
+    };
+    wrap.appendChild(removeBtn);
+
+    dropZone.appendChild(wrap);
+  }
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SIZE CONTROL
+// ══════════════════════════════════════════════════════════════════
+
+function toggleSizeMenu() {
+  document.getElementById('sizePopup').classList.toggle('show');
+}
+
+function setSize(size) {
+  currentSize = size;
+  document.querySelectorAll('.size-opt').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('sizePopup').classList.remove('show');
+
+  // Thumb sizes in drop zone
+  const thumbSizes = { sm: { w: 90, h: 120 }, md: { w: 130, h: 173 }, lg: { w: 180, h: 240 } };
+  const ts = thumbSizes[size];
+  document.querySelectorAll('.drop-zone .thumb').forEach(el => {
+    el.style.width = `${ts.w}px`;
+    el.style.height = `${ts.h}px`;
+  });
+  document.querySelectorAll('.drop-zone .thumb-name').forEach(el => {
+    el.style.maxWidth = `${ts.w}px`;
+  });
+
+  // Grid always 6 columns
+  const grid = document.getElementById('looksGrid');
+  grid.className = 'looks-grid cols-6';
+}
+
+function setTier(tier) {
+  currentTier = tier;
+  const highBtn = document.getElementById('tierHigh');
+  const dailyBtn = document.getElementById('tierDaily');
+  if (tier === 'high') {
+    highBtn.style.borderColor = 'rgba(147,51,234,0.5)';
+    highBtn.style.color = 'rgba(147,51,234,0.8)';
+    highBtn.style.background = 'rgba(147,51,234,0.08)';
+    dailyBtn.style.borderColor = 'rgba(0,180,220,0.3)';
+    dailyBtn.style.color = 'rgba(0,180,220,0.5)';
+    dailyBtn.style.background = 'transparent';
+  } else {
+    dailyBtn.style.borderColor = 'rgba(0,180,220,0.5)';
+    dailyBtn.style.color = 'rgba(0,180,220,0.8)';
+    dailyBtn.style.background = 'rgba(0,180,220,0.08)';
+    highBtn.style.borderColor = 'rgba(147,51,234,0.3)';
+    highBtn.style.color = 'rgba(147,51,234,0.5)';
+    highBtn.style.background = 'transparent';
+  }
+}
+
+// Close popup on outside click
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.gear-btn') && !e.target.closest('.size-popup')) {
+    document.getElementById('sizePopup').classList.remove('show');
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════
+// ADD COLUMN
+// ══════════════════════════════════════════════════════════════════
+
+function clearAll() {
+  if (!confirm('Clear all source files and looks?')) return;
+  sourceFiles = [];
+  fileIdCounter = 0;
+  initLooks();
+  renderSourceFiles();
+  updateSaveState();
+}
+
+function addSlotRow() {
+  maxSlots++;
+  SLOT_NAMES.push(`image ${maxSlots}`);
+  for (let i = 0; i < looks.length; i++) {
+    looks[i].push(null);
+  }
+  renderLooks();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SAVE — File System Access API
+// ══════════════════════════════════════════════════════════════════
+
+// Crop top 13% of image using canvas
+async function cropTop13(dataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const cropY = Math.round(img.height * 0.13);
+      const newH = img.height - cropY;
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = newH;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, cropY, img.width, newH, 0, 0, img.width, newH);
+      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.95);
+    };
+    img.src = dataUrl;
+  });
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+async function saveCollection() {
+  // Find used looks (at least one slot filled)
+  const usedLooks = [];
+  for (let i = 0; i < looks.length; i++) {
+    if (looks[i].some(s => s !== null)) {
+      usedLooks.push({ lookNum: i + 1, slots: looks[i] });
+    }
+  }
+
+  if (usedLooks.length === 0) {
+    showToast('No looks to save');
+    return;
+  }
+
+  showToast(`Processing ${usedLooks.length} looks...`);
+
+  try {
+    // Try File System Access API first (Chrome), fallback to individual downloads
+    if (window.showDirectoryPicker) {
+      await saveToDirectory(usedLooks);
+    } else {
+      await saveAsDownloads(usedLooks);
+    }
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    console.error('Save error:', e);
+    showToast(`Error: ${e.message}`);
+  }
+}
+
+// Chrome: save to directory
+async function saveToDirectory(usedLooks) {
+  dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+  const folderName = `${collectionId}_${currentTier}`;
+  const collDirHandle = await dirHandle.getDirectoryHandle(folderName, { create: true });
+
+  for (const look of usedLooks) {
+    const lookDirHandle = await collDirHandle.getDirectoryHandle(`look${look.lookNum}`, { create: true });
+    for (let row = 0; row < look.slots.length; row++) {
+      const slot = look.slots[row];
+      if (!slot) continue;
+      const filename = getFilename(slot.name, row);
+      const croppedBlob = await cropTop13(slot.dataUrl);
+      const fileHandle = await lookDirHandle.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(croppedBlob);
+      await writable.close();
+    }
+  }
+  showToast(`Saved: ${folderName}/ — ${usedLooks.length} looks (${currentTier})`);
+}
+
+// Safari fallback: download each file individually with folder-like naming
+async function saveAsDownloads(usedLooks) {
+  let fileCount = 0;
+  for (const look of usedLooks) {
+    for (let row = 0; row < look.slots.length; row++) {
+      const slot = look.slots[row];
+      if (!slot) continue;
+      const filename = getFilename(slot.name, row);
+      const croppedBlob = await cropTop13(slot.dataUrl);
+
+      // Download with path-like filename: collectionId_tier__look1__filename.jpeg
+      const downloadName = `${collectionId}_${currentTier}__look${look.lookNum}__${filename}`;
+      const url = URL.createObjectURL(croppedBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = downloadName;
+      a.click();
+      URL.revokeObjectURL(url);
+      fileCount++;
+
+      // Small delay between downloads so browser doesn't block
+      await new Promise(r => setTimeout(r, 300));
+    }
+  }
+  showToast(`Downloaded ${fileCount} files (${usedLooks.length} looks)`);
+}
+
+function getFilename(origName, row) {
+  const ext = origName.match(/\.(jpe?g|png|webp|avif)$/i)?.[0] || '.jpeg';
+  const normalExt = (ext === '.jpg') ? '.jpeg' : ext;
+  // Always save as .jpeg since cropTop13 converts to jpeg
+  const outExt = '.jpeg';
+  if (origName.includes('_')) {
+    // Has brand info — keep original name but ensure jpeg extension
+    return origName.replace(/\.\w+$/, outExt);
+  }
+  return row === 0 ? `garment${outExt}` : `ref${row + 1}${outExt}`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CROP TOOL
+// ══════════════════════════════════════════════════════════════════
+
+let cropFileId = null;
+let cropStart = null;
+let cropEnd = null;
+let isCropping = false;
+
+function openCrop(fileId) {
+  const src = sourceFiles.find(f => f.id === fileId);
+  if (!src) return;
+  cropFileId = fileId;
+  cropStart = null;
+  cropEnd = null;
+  document.getElementById('cropRect').style.display = 'none';
+  document.getElementById('cropApplyBtn').disabled = true;
+  document.getElementById('cropImg').src = src.dataUrl;
+  document.getElementById('cropOverlay').classList.add('show');
+}
+
+function closeCrop() {
+  document.getElementById('cropOverlay').classList.remove('show');
+  cropFileId = null;
+}
+
+// Mouse events on crop container
+const cropContainer = document.getElementById('cropContainer');
+const cropRect = document.getElementById('cropRect');
+const cropImg = document.getElementById('cropImg');
+
+cropContainer.addEventListener('mousedown', (e) => {
+  const rect = cropImg.getBoundingClientRect();
+  cropStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  cropEnd = null;
+  cropRect.style.display = 'block';
+  cropRect.style.left = cropStart.x + 'px';
+  cropRect.style.top = cropStart.y + 'px';
+  cropRect.style.width = '0';
+  cropRect.style.height = '0';
+  isCropping = true;
+  e.preventDefault();
+});
+
+cropContainer.addEventListener('mousemove', (e) => {
+  if (!isCropping || !cropStart) return;
+  const rect = cropImg.getBoundingClientRect();
+  cropEnd = {
+    x: Math.max(0, Math.min(e.clientX - rect.left, rect.width)),
+    y: Math.max(0, Math.min(e.clientY - rect.top, rect.height)),
+  };
+  const x = Math.min(cropStart.x, cropEnd.x);
+  const y = Math.min(cropStart.y, cropEnd.y);
+  const w = Math.abs(cropEnd.x - cropStart.x);
+  const h = Math.abs(cropEnd.y - cropStart.y);
+  cropRect.style.left = x + 'px';
+  cropRect.style.top = y + 'px';
+  cropRect.style.width = w + 'px';
+  cropRect.style.height = h + 'px';
+});
+
+window.addEventListener('mouseup', () => {
+  if (isCropping && cropStart && cropEnd) {
+    const w = Math.abs(cropEnd.x - cropStart.x);
+    const h = Math.abs(cropEnd.y - cropStart.y);
+    document.getElementById('cropApplyBtn').disabled = (w < 10 || h < 10);
+  }
+  isCropping = false;
+});
+
+// ESC to close
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('cropOverlay').classList.contains('show')) {
+    closeCrop();
+  }
+});
+
+function applyCrop() {
+  if (!cropFileId || !cropStart || !cropEnd) return;
+
+  const src = sourceFiles.find(f => f.id === cropFileId);
+  if (!src) return;
+
+  const imgEl = document.getElementById('cropImg');
+  const displayW = imgEl.clientWidth;
+  const displayH = imgEl.clientHeight;
+
+  // Load original image to get real dimensions
+  const origImg = new Image();
+  origImg.onload = () => {
+    const scaleX = origImg.width / displayW;
+    const scaleY = origImg.height / displayH;
+
+    const x = Math.min(cropStart.x, cropEnd.x) * scaleX;
+    const y = Math.min(cropStart.y, cropEnd.y) * scaleY;
+    const w = Math.abs(cropEnd.x - cropStart.x) * scaleX;
+    const h = Math.abs(cropEnd.y - cropStart.y) * scaleY;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(w);
+    canvas.height = Math.round(h);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(origImg, Math.round(x), Math.round(y), Math.round(w), Math.round(h), 0, 0, Math.round(w), Math.round(h));
+
+    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+    // Update source file
+    src.dataUrl = croppedDataUrl;
+    src.file = null; // original File object no longer valid
+
+    // Also update any look slots using this file
+    for (const col of looks) {
+      for (let row = 0; row < col.length; row++) {
+        if (col[row] && col[row].id === cropFileId) {
+          col[row].dataUrl = croppedDataUrl;
+        }
+      }
+    }
+
+    closeCrop();
+    renderSourceFiles();
+    renderLooks();
+    showToast('Cropped');
+  };
+  origImg.src = src.dataUrl;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// AUTO-SAVE / RESTORE (localStorage)
+// ══════════════════════════════════════════════════════════════════
+
+const STORAGE_KEY = 'vault-coordinator-state';
+
+function autoSave() {
+  try {
+    const state = {
+      collectionId,
+      lookCount,
+      currentSize,
+      sourceFiles: sourceFiles.map(f => ({ id: f.id, name: f.name, dataUrl: f.dataUrl })),
+      looks: looks.map(col => col.map(slot =>
+        slot ? { id: slot.id, name: slot.name, dataUrl: slot.dataUrl } : null
+      )),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    // localStorage full or unavailable — silently ignore
+  }
+}
+
+function restoreState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const state = JSON.parse(raw);
+
+    // Restore source files
+    sourceFiles = (state.sourceFiles || []).map(f => ({
+      id: f.id,
+      name: f.name,
+      file: null,
+      dataUrl: f.dataUrl,
+    }));
+    fileIdCounter = sourceFiles.length + 1;
+
+    // Restore looks
+    lookCount = state.lookCount || 6;
+    looks = (state.looks || []).map(col =>
+      col.map(slot => slot ? { id: slot.id, name: slot.name, file: null, dataUrl: slot.dataUrl } : null)
+    );
+
+    // Restore size
+    if (state.currentSize) {
+      currentSize = state.currentSize;
+    }
+
+    // Always use fresh collection ID (never restore old one)
+    document.getElementById('collectionId').textContent = collectionId;
+
+    return sourceFiles.length > 0 || looks.some(col => col.some(s => s !== null));
+  } catch (e) {
+    return false;
+  }
+}
+
+// Hook auto-save into state changes
+const _origRenderLooks = renderLooks;
+renderLooks = function() {
+  _origRenderLooks();
+  autoSave();
+};
+
+const _origRenderSourceFiles = renderSourceFiles;
+renderSourceFiles = function() {
+  _origRenderSourceFiles();
+  autoSave();
+};
+
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+
+if (restoreState()) {
+  renderSourceFiles();
+  renderLooks();
+  updateSaveState();
+  showToast('Previous session restored');
+} else {
+  initLooks();
+}
+</script>
+</body>
+</html>
