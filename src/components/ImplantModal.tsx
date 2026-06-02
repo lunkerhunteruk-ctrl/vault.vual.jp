@@ -269,7 +269,7 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-end justify-center"
+        className="fixed inset-0 z-50 flex items-end justify-center pb-6"
         onClick={handleClose}
       >
         {/* Backdrop */}
