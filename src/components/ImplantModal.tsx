@@ -277,8 +277,8 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
 
         {/* Modal sheet */}
         <div
-          className="relative w-full max-w-lg max-h-[90vh] rounded-t-2xl overflow-y-auto animate-slide-up"
-          style={{ background: "var(--vault-bg)", borderTop: "1px solid var(--vault-border)" }}
+          className="relative w-[calc(100%-32px)] max-w-lg max-h-[85vh] rounded-2xl overflow-y-auto animate-slide-up"
+          style={{ background: "var(--vault-bg)", border: "1px solid var(--vault-border)", margin: "16px" }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Handle bar */}
