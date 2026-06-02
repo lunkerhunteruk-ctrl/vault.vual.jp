@@ -22,6 +22,7 @@ export interface VaultTheme {
   id: string;
   date: string;
   city: string;
+  subtitle?: string;
   locations: VaultLocation[];
 }
 

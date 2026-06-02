@@ -68,6 +68,7 @@ export async function getAllCollections(): Promise<VaultCollection[]> {
     results.push({
       id: d.id,
       city: data.city || '',
+      subtitle: data.subtitle || '',
       published: data.published ?? false,
       publishAt: data.publishAt?.toDate?.() || null,
       createdAt: data.createdAt?.toDate?.() || new Date(),
