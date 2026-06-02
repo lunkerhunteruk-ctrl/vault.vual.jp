@@ -188,8 +188,10 @@ async function createFromDir(collectionId: string, materialsDir: string, opts: {
       const recipeBase = `vault/collections/${collectionId}/look${lookNum}-recipe`;
       console.log(`   📦 Look ${lookNum}: ${lookDir}`);
 
-      // Upload recipe.json (prompt inside JSON, not exposed as plain text)
-      await uploadToR2(`${recipeBase}/recipe.json`, JSON.stringify({ prompt }), 'application/json');
+      // Upload prompt with randomized filename
+      const promptFile = `r_${Math.random().toString(36).slice(2, 10)}.json`;
+      await uploadToR2(`${recipeBase}/${promptFile}`, JSON.stringify({ prompt }), 'application/json');
+      await uploadToR2(`${recipeBase}/manifest.json`, JSON.stringify({ prompt: promptFile }), 'application/json');
 
       // Upload all image files in look folder
       const lookFiles = fs.readdirSync(lookDir).filter(f => /\.(jpe?g|png|webp)$/i.test(f)).sort();

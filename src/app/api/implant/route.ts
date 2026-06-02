@@ -53,18 +53,30 @@ export async function POST(request: NextRequest) {
     }
     const recipeBase = lookMatch[1] + '-recipe';
 
-    // Read recipe: try recipe.json first, fallback to prompt.txt for legacy
+    // Read prompt: manifest.json → random file, fallback to recipe.json, then prompt.txt
     let basePrompt: string;
-    const recipeBuf = await fetchR2File(`${recipeBase}/recipe.json`);
-    if (recipeBuf) {
-      const recipe = JSON.parse(recipeBuf.toString('utf-8'));
-      basePrompt = recipe.prompt || '';
-    } else {
-      const promptBuf = await fetchR2File(`${recipeBase}/prompt.txt`);
+    const manifestBuf = await fetchR2File(`${recipeBase}/manifest.json`);
+    if (manifestBuf) {
+      const manifest = JSON.parse(manifestBuf.toString('utf-8'));
+      const promptBuf = await fetchR2File(`${recipeBase}/${manifest.prompt}`);
       if (!promptBuf) {
-        return NextResponse.json({ success: false, error: `Recipe not found: ${recipeBase}` }, { status: 404 });
+        return NextResponse.json({ success: false, error: `Prompt file not found: ${manifest.prompt}` }, { status: 404 });
       }
-      basePrompt = promptBuf.toString('utf-8');
+      const data = JSON.parse(promptBuf.toString('utf-8'));
+      basePrompt = data.prompt || '';
+    } else {
+      // Legacy fallback: recipe.json or prompt.txt
+      const recipeBuf = await fetchR2File(`${recipeBase}/recipe.json`);
+      if (recipeBuf) {
+        const recipe = JSON.parse(recipeBuf.toString('utf-8'));
+        basePrompt = recipe.prompt || '';
+      } else {
+        const promptBuf = await fetchR2File(`${recipeBase}/prompt.txt`);
+        if (!promptBuf) {
+          return NextResponse.json({ success: false, error: `Recipe not found: ${recipeBase}` }, { status: 404 });
+        }
+        basePrompt = promptBuf.toString('utf-8');
+      }
     }
     const prompt = `The model is ${modelHeight}cm tall with a slim build.\n${basePrompt}`;
 
