@@ -546,10 +546,11 @@ export function MondrianGrid({ media, collectionId, onImageClick, onVideoClick }
       12: layout12Portrait,
     };
     const imgLayout = imgLayouts[imageCount]?.() || layout12Portrait();
-    // Shift all rows down to make room for video
-    const videoRows = 8;
+    // Video 6 cols × 12 rows = 3:4 ratio (each row = 100vw/12 * 4/3 height)
+    // 6 cols wide = 50vw, 12 rows tall = 12 * (100vw/12 * 4/3) = 66.7vw → ratio ~3:4
+    const videoRows = 12;
     placements = [
-      { colStart: 1, colEnd: 13, rowStart: 1, rowEnd: videoRows + 1 }, // video full width
+      { colStart: 1, colEnd: 7, rowStart: 1, rowEnd: videoRows + 1 }, // video 6×12 (3:4)
       ...imgLayout.map(p => ({
         ...p,
         rowStart: p.rowStart + videoRows,
