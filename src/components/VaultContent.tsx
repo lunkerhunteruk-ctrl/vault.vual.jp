@@ -29,7 +29,7 @@ export function VaultContent() {
 
   // Fetch published collections from Firestore
   useEffect(() => {
-    getPublishedCollections().then(setCollections);
+    getPublishedCollections("high").then(setCollections);
   }, []);
 
   // Handle Google redirect result (mobile sign-in)
