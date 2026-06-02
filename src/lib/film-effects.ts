@@ -171,7 +171,7 @@ function addGrain(ctx: CanvasRenderingContext2D, w: number, h: number, intensity
   ctx.putImageData(imageData, 0, 0);
 }
 
-function addFilmEdgePrint(ctx: CanvasRenderingContext2D, w: number, h: number, title: string, lot: string) {
+function addFilmEdgePrint(ctx: CanvasRenderingContext2D, w: number, h: number, title: string, lot: string, brand: string = 'VUAL') {
   const fontSize = 17;
   const margin = Math.floor(w * 0.03);
 
@@ -189,7 +189,6 @@ function addFilmEdgePrint(ctx: CanvasRenderingContext2D, w: number, h: number, t
   ctx.filter = 'blur(0.5px)';
 
   // Main text
-  const brand = meta?.brand || 'VUAL';
   const text = `${title}   ${lot}   ${brand}`;
   ctx.fillStyle = 'rgba(215, 140, 50, 0.55)';
   ctx.fillText(text, 0, 0);
@@ -264,7 +263,7 @@ export function applyFilmEffects(
 
         // Film edge print (title + lot number)
         if (meta?.title || meta?.lot) {
-          addFilmEdgePrint(ctx, w, h, meta.title || '', meta.lot || '');
+          addFilmEdgePrint(ctx, w, h, meta.title || '', meta.lot || '', meta.brand || 'VUAL');
         }
 
         resolve(canvas.toDataURL('image/jpeg', 0.92));
