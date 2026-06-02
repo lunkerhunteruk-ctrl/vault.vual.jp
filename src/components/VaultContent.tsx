@@ -11,9 +11,11 @@ import { UserBadge } from "@/components/UserBadge";
 import { VideoModal } from "@/components/VideoModal";
 import { getPublishedCollections, formatCollectionDate, VaultCollection } from "@/lib/collections";
 import { LightboxModal } from "@/components/LightboxModal";
+import { getBrandByDomain, VaultBrand } from "@/lib/brand";
 
 export function VaultContent() {
   const [collections, setCollections] = useState<VaultCollection[]>([]);
+  const [brand, setBrand] = useState<VaultBrand | null>(null);
   const [selectedImage, setSelectedImage] = useState<
     (VaultMedia & { locationId: string }) | null
   >(null);
@@ -27,9 +29,23 @@ export function VaultContent() {
   const user = useVaultStore((s) => s.user);
   const syncCredits = useVaultStore((s) => s.syncFromFirestore);
 
-  // Fetch published collections from Firestore
+  // Detect brand from domain, then fetch collections
   useEffect(() => {
-    getPublishedCollections("high").then(setCollections);
+    getBrandByDomain(window.location.hostname).then((b) => {
+      setBrand(b);
+      if (b) {
+        // Brand mode: fetch by brandId, no tier filter
+        getPublishedCollections(undefined, b.id).then(setCollections);
+        // Apply brand accent color
+        document.documentElement.style.setProperty('--vault-cyan', b.accentColor);
+        document.documentElement.style.setProperty('--vault-cyan-dim', b.accentColor + '40');
+        // Update page title
+        document.title = `${b.name} — Try On`;
+      } else {
+        // VUAL mode: high tier only
+        getPublishedCollections("high").then(setCollections);
+      }
+    });
   }, []);
 
   // Handle Google redirect result (mobile sign-in)
@@ -110,6 +126,7 @@ export function VaultContent() {
         entities={sampleEntities}
         themeCity={selectedCity}
         totalLooks={selectedTotalLooks}
+        brandName={brand?.filmPrint || brand?.name}
         onClose={() => { setSelectedImage(null); setSelectedHasRecipe(false); }}
       />
 

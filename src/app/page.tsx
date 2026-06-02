@@ -41,9 +41,10 @@ function HeroSection() {
         }
       `}</style>
       <div className="text-center w-full px-6 relative z-10">
-        <p className="text-[11px] tracking-[8px] font-light mb-8" style={{ color: "var(--vault-text-dim)" }}>
+        <p id="hero-title" className="text-[11px] tracking-[8px] font-light mb-8" style={{ color: "var(--vault-text-dim)" }}>
           VAULT
         </p>
+        <div id="hero-logo" className="flex justify-center mb-4" />
         <div
           style={{
             fontFamily: "var(--font-mono), 'Courier New', 'SF Mono', monospace",
@@ -55,11 +56,11 @@ function HeroSection() {
             whiteSpace: "pre",
           }}
         >
-          <div>{renderLine(line1)}</div>
-          <div>{renderLine(line2)}</div>
+          <div id="hero-line1">{renderLine(line1)}</div>
+          <div id="hero-line2">{renderLine(line2)}</div>
         </div>
         <div className="mx-auto mt-8 w-[1px] h-8" style={{ background: "var(--vault-border)" }} />
-        <p className="mt-4 text-[9px] tracking-[5px] font-light" style={{ color: "var(--vault-text-dim)" }}>
+        <p id="hero-subtitle" className="mt-4 text-[9px] tracking-[5px] font-light" style={{ color: "var(--vault-text-dim)" }}>
           by VUAL
         </p>
       </div>

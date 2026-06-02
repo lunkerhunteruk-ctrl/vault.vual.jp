@@ -189,7 +189,8 @@ function addFilmEdgePrint(ctx: CanvasRenderingContext2D, w: number, h: number, t
   ctx.filter = 'blur(0.5px)';
 
   // Main text
-  const text = `${title}   ${lot}   VUAL`;
+  const brand = meta?.brand || 'VUAL';
+  const text = `${title}   ${lot}   ${brand}`;
   ctx.fillStyle = 'rgba(215, 140, 50, 0.55)';
   ctx.fillText(text, 0, 0);
 
@@ -206,7 +207,7 @@ function addFilmEdgePrint(ctx: CanvasRenderingContext2D, w: number, h: number, t
  */
 export function applyFilmEffects(
   dataUrl: string,
-  meta?: { title?: string; lot?: string }
+  meta?: { title?: string; lot?: string; brand?: string }
 ): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();

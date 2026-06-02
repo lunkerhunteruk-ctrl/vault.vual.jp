@@ -23,7 +23,7 @@ export interface VaultCollection {
 
 // Fetch all published collections (publishAt <= now)
 // tier filter: "high" = high-end only, "daily" = daily only, undefined = all (backward compat)
-export async function getPublishedCollections(tier?: "high" | "daily"): Promise<VaultCollection[]> {
+export async function getPublishedCollections(tier?: "high" | "daily", brandId?: string): Promise<VaultCollection[]> {
   if (!db) return [];
   const snapshot = await getDocs(collection(db, 'vault_collections'));
   const now = new Date();
@@ -41,6 +41,9 @@ export async function getPublishedCollections(tier?: "high" | "daily"): Promise<
       // Tier filter: if specified, only show matching tier
       if (tier && docTier !== tier) return;
 
+      // Brand filter: if specified, only show matching brand
+      if (brandId && data.brandId !== brandId) return;
+
       results.push({
         id: d.id,
         city: data.city || '',
@@ -49,6 +52,7 @@ export async function getPublishedCollections(tier?: "high" | "daily"): Promise<
         publishAt,
         createdAt: data.createdAt?.toDate?.() || new Date(),
         hasRecipe: data.hasRecipe ?? false,
+        tier: data.tier || undefined,
         media: (data.media || []).filter((m: any) => !m.hidden),
       });
     }

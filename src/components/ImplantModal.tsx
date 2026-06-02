@@ -17,6 +17,7 @@ interface ImplantModalProps {
   entities: VaultEntity[];
   themeCity?: string;
   totalLooks?: number;
+  brandName?: string;
   onClose: () => void;
 }
 
@@ -29,7 +30,7 @@ const INJECT_STEPS = [
   "SEALING OUTPUT",
 ];
 
-export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }: ImplantModalProps) {
+export function ImplantModal({ image, entities, themeCity, totalLooks, brandName, onClose }: ImplantModalProps) {
   const [state, setState] = useState<ModalState>("select");
   const [selectedEntity, setSelectedEntity] = useState<VaultEntity | null>(null);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
@@ -147,6 +148,7 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
         const withEffects = await applyFilmEffects(data.resultImage, {
           title: `${city}  ${filmDate}`,
           lot,
+          brand: brandName,
         });
         setState("result");
         setResultUrl(withEffects);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { getBrandByDomain } from "@/lib/brand";
 
 export function HeroAnimations() {
   const [Toggle, setToggle] = useState<React.ComponentType | null>(null);
@@ -17,9 +18,36 @@ export function HeroAnimations() {
     // Find portal root
     setPortalRoot(document.getElementById("vault-content-root"));
 
-    // Load Firebase content immediately (scroll blocking was due to missing spacer, not Firebase)
+    // Load Firebase content immediately
     import("./VaultContent").then((m) => {
       setContent(() => m.VaultContent);
+    });
+
+    // Brand mode: override hero text
+    getBrandByDomain(window.location.hostname).then((brand) => {
+      if (!brand) return;
+
+      // Override hero title
+      const titleEl = document.getElementById("hero-title");
+      if (titleEl) titleEl.textContent = brand.name;
+
+      // Override hero lines
+      const line1El = document.getElementById("hero-line1");
+      const line2El = document.getElementById("hero-line2");
+      if (line1El && brand.heroLine1) line1El.textContent = brand.heroLine1;
+      if (line2El && brand.heroLine2) line2El.textContent = brand.heroLine2;
+
+      // Override subtitle
+      const subEl = document.getElementById("hero-subtitle");
+      if (subEl) subEl.textContent = brand.heroSubtitle || `by ${brand.name}`;
+
+      // Brand logo
+      if (brand.logo) {
+        const logoEl = document.getElementById("hero-logo");
+        if (logoEl) {
+          logoEl.innerHTML = `<img src="${brand.logo}" alt="${brand.name}" style="height: 24px; opacity: 0.6; object-fit: contain;" />`;
+        }
+      }
     });
   }, []);
 
