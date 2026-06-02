@@ -227,7 +227,7 @@ export default function DemoPage() {
             </button>
 
             <iframe
-              src="/"
+              src="/tryon?look=29-05-2026_shibuya_italian/look1&city=SHIBUYA"
               style={{
                 width: "100%",
                 height: "100%",
