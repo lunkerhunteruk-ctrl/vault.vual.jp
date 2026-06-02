@@ -395,6 +395,12 @@ export default function AdminPage() {
                               <div className="absolute top-1 left-1 px-1 py-0.5 bg-black/60 rounded text-[7px] text-yellow-400/70">L{lookMatch[1]}</div>
                             ) : null;
                           })()}
+                          <a
+                            href={`/api/download?url=${encodeURIComponent(m.file)}&name=${col.id}_look${m.file.match(/look(\d+)/)?.[1] || idx}.jpg`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute top-1 right-1 w-5 h-5 rounded bg-black/60 flex items-center justify-center text-[10px] text-white/50 hover:text-white/90"
+                            title="Download"
+                          >↓</a>
                         </div>
                       )}
                       <button
