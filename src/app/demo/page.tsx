@@ -193,9 +193,9 @@ export default function DemoPage() {
           <div
             style={{
               position: "relative",
-              width: "90vw",
-              maxWidth: "480px",
-              height: "85vh",
+              width: "92vw",
+              maxWidth: "520px",
+              height: "95vh",
               borderRadius: "12px",
               overflow: "hidden",
               background: "#0a0a0a",
