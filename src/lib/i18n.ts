@@ -32,6 +32,13 @@ const dict = {
 type Key = keyof typeof dict;
 
 function getLocale(): "ja" | "en" {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    // Brand domains (e.g. balenciaga.vault.vual.jp) → always English
+    // vault.vual.jp and localhost → auto-detect (ja/en)
+    const isVualDomain = host === "vault.vual.jp" || host === "localhost" || host.includes("vual.jp") && !host.includes(".vault.vual.jp");
+    if (!isVualDomain) return "en";
+  }
   if (typeof navigator === "undefined") return "en";
   return navigator.language.startsWith("ja") ? "ja" : "en";
 }
