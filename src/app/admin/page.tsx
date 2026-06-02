@@ -357,6 +357,7 @@ export default function AdminPage() {
                 <span className="text-[9px] tracking-[1px] text-white/25">DATE OVERRIDE</span>
                 <input
                   type="date"
+                  key={`${col.id}-${col.publishAt?.getTime() || 0}`}
                   defaultValue={col.publishAt ? col.publishAt.toISOString().slice(0, 10) : col.createdAt.toISOString().slice(0, 10)}
                   onChange={async (e) => {
                     if (e.target.value) {
@@ -384,7 +385,10 @@ export default function AdminPage() {
                   {col.media.map((m: any, idx: number) => (
                     <div key={idx} className={`relative rounded overflow-hidden ${m.hidden ? 'opacity-25' : ''}`}>
                       {m.type === 'video' ? (
-                        <div className="aspect-[3/4] bg-white/5 flex items-center justify-center text-[10px] text-white/30">VIDEO</div>
+                        <div className="aspect-[3/4] relative bg-white/5">
+                          <video src={`${m.file}#t=2`} className="w-full h-full object-cover" muted preload="metadata" />
+                          <div className="absolute top-1 left-1 px-1 py-0.5 bg-black/60 rounded text-[7px] text-white/50">VIDEO</div>
+                        </div>
                       ) : (
                         <img src={m.file} className="aspect-[3/4] w-full object-cover" loading="lazy" />
                       )}
