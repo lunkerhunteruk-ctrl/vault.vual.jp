@@ -26,7 +26,7 @@ export function HeroAnimations() {
   return (
     <>
       {Toggle && (
-        <div className="fixed top-[72px] right-[3px] z-50 pointer-events-auto" style={{ transform: "rotate(90deg)" }}>
+        <div className="fixed top-[72px] right-[-6px] z-50 pointer-events-auto" style={{ transform: "rotate(90deg)" }}>
           <Toggle />
         </div>
       )}
