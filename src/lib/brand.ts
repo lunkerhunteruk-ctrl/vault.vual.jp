@@ -15,14 +15,15 @@ export interface VaultBrand {
 
 let cachedBrand: VaultBrand | null | undefined = undefined; // undefined = not yet fetched
 
-const VUAL_DOMAINS = ['vault.vual.jp', 'localhost'];
-
 export async function getBrandByDomain(hostname: string): Promise<VaultBrand | null> {
   // Return cached result
   if (cachedBrand !== undefined) return cachedBrand;
 
-  // VUAL's own domains — no brand
-  if (VUAL_DOMAINS.some(d => hostname.includes(d))) {
+  // Strip port
+  const cleanHost = hostname.split(':')[0];
+
+  // VUAL's own domains — no brand (exact match only)
+  if (cleanHost === 'vault.vual.jp' || cleanHost === 'localhost') {
     cachedBrand = null;
     return null;
   }
@@ -31,9 +32,6 @@ export async function getBrandByDomain(hostname: string): Promise<VaultBrand | n
     cachedBrand = null;
     return null;
   }
-
-  // Strip port for matching
-  const cleanHost = hostname.split(':')[0];
 
   const snapshot = await getDocs(collection(db, 'vault_brands'));
   for (const d of snapshot.docs) {
