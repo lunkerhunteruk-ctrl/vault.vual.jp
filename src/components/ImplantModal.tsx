@@ -294,39 +294,29 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
             }}
           >
             {state === "implanting" ? (
-              <div className={`w-full h-full flex flex-col items-center justify-center gap-6 relative overflow-hidden ${userPhoto ? "dna-inject-bg" : ""}`}>
+              <div className="w-full h-full flex flex-col items-center justify-center gap-6 relative overflow-hidden">
                 {/* Electromagnetic noise background */}
                 <div className="absolute inset-0 inject-noise" />
                 {/* Scan lines */}
-                <div className={`absolute inset-0 ${userPhoto ? "dna-scanlines" : "inject-scanlines"}`} />
+                <div className="absolute inset-0 inject-scanlines" />
                 {/* Glitch bars */}
-                <div className={`absolute inset-0 ${userPhoto ? "dna-glitch" : "inject-glitch"}`} />
-                {/* Lightning bolts (DNA inject only) */}
-                {userPhoto && (
-                  <>
-                    <div className="absolute inset-0 dna-lightning-1" />
-                    <div className="absolute inset-0 dna-lightning-2" />
-                    <div className="absolute inset-0 dna-vignette" />
-                  </>
-                )}
+                <div className="absolute inset-0 inject-glitch" />
 
                 {/* Steps */}
                 <div className="relative z-10 text-left space-y-3 px-8">
                   {INJECT_STEPS.map((step, i) => (
                     <p
                       key={step}
-                      className={`text-[11px] tracking-[3px] font-light transition-all duration-300 ${userPhoto && i === currentStep ? "dna-text-shake" : ""}`}
+                      className="text-[11px] tracking-[3px] font-light transition-all duration-300"
                       style={{
                         color:
                           i <= currentStep
-                            ? userPhoto ? "#ff3333" : "var(--vault-cyan)"
+                            ? "var(--vault-cyan)"
                             : "rgba(255,255,255,0.08)",
                         opacity: i <= currentStep ? 1 : 0.3,
                         textShadow:
                           i === currentStep
-                            ? userPhoto
-                              ? "0 0 10px #ff3333, 0 0 30px #ff3333, 0 0 60px #ff000080"
-                              : "0 0 10px var(--vault-cyan), 0 0 30px var(--vault-cyan)"
+                            ? "0 0 10px var(--vault-cyan), 0 0 30px var(--vault-cyan)"
                             : "none",
                       }}
                     >
@@ -336,14 +326,11 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, onClose }
                   ))}
                 </div>
 
-                {/* Status text */}
+                {/* Status text — unified cyan */}
                 {userPhoto ? (
-                  <div className="relative z-10 dna-status-flicker">
-                    <p className="text-[14px] tracking-[8px] font-light text-red-500">
+                  <div className="relative z-10">
+                    <p className="text-[14px] tracking-[8px] font-light" style={{ color: "var(--vault-cyan)" }}>
                       INJECTING DNA
-                    </p>
-                    <p className="text-[8px] tracking-[3px] font-light text-red-500/40 mt-1">
-                      WARNING: NEURAL PATTERN OVERRIDE IN PROGRESS
                     </p>
                   </div>
                 ) : (
