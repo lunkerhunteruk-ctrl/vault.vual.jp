@@ -44,6 +44,10 @@ export async function POST(request: NextRequest) {
 
     const modelHeight = height || 170;
 
+    // Log origin for brand usage tracking
+    const origin = request.headers.get('origin') || request.headers.get('referer') || 'unknown';
+    console.log(`[INJECT] origin=${origin}`);
+
     // Extract look path from R2 URL
     // Date-based: "https://...r2.dev/vault/collections/20-05-2026/look2.jpg" → "20-05-2026/look2"
     // Named: "https://...r2.dev/vault/collections/29-05-2026_shibuya_italian/look2.jpg" → "29-05-2026_shibuya_italian/look2"

@@ -11,6 +11,7 @@ export interface VaultBrand {
   heroLine2?: string;
   heroSubtitle?: string;
   filmPrint?: string;
+  active?: boolean;
 }
 
 let cachedBrand: VaultBrand | null | undefined = undefined; // undefined = not yet fetched
@@ -37,6 +38,11 @@ export async function getBrandByDomain(hostname: string): Promise<VaultBrand | n
   for (const d of snapshot.docs) {
     const data = d.data();
     if (data.domain === cleanHost) {
+      // Check if brand is active (default true for backward compat)
+      if (data.active === false) {
+        cachedBrand = null;
+        return null;
+      }
       cachedBrand = {
         id: d.id,
         domain: data.domain,
@@ -47,6 +53,7 @@ export async function getBrandByDomain(hostname: string): Promise<VaultBrand | n
         heroLine2: data.heroLine2 || undefined,
         heroSubtitle: data.heroSubtitle || undefined,
         filmPrint: data.filmPrint || undefined,
+        active: data.active ?? true,
       };
       return cachedBrand;
     }
