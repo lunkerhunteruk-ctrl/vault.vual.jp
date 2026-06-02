@@ -26,10 +26,8 @@ export function HeroAnimations() {
   return (
     <>
       {Toggle && (
-        <div className="fixed top-0 left-0 w-full z-10 pointer-events-none" style={{ height: "100dvh" }}>
-          <div className="absolute bottom-[22vh] left-1/2 -translate-x-1/2 pointer-events-auto">
-            <Toggle />
-          </div>
+        <div className="fixed top-[60px] right-5 z-50 pointer-events-auto">
+          <Toggle />
         </div>
       )}
 

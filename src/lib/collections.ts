@@ -15,6 +15,7 @@ export interface VaultCollection {
     type: "image" | "video";
     aspect: "3:4" | "4:3" | "9:16" | "16:9" | "1:1";
     isHero?: boolean;
+    hidden?: boolean;
   }[];
 }
 
@@ -39,7 +40,7 @@ export async function getPublishedCollections(): Promise<VaultCollection[]> {
         publishAt,
         createdAt: data.createdAt?.toDate?.() || new Date(),
         hasRecipe: data.hasRecipe ?? false,
-        media: data.media || [],
+        media: (data.media || []).filter((m: any) => !m.hidden),
       });
     }
   });

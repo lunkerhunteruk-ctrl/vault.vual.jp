@@ -314,6 +314,16 @@ export default function AdminPage() {
                     }}
                     className="text-[13px] text-white/70 font-light bg-transparent border-b border-white/10 hover:border-white/30 focus:border-white/50 outline-none w-full"
                   />
+                  <input
+                    type="text"
+                    placeholder="Subtitle (e.g. COS x NEW BALANCE)"
+                    defaultValue={(col as any).subtitle || ""}
+                    onBlur={async (e) => {
+                      if (!db) return;
+                      await updateDoc(doc(db, "vault_collections", col.id), { subtitle: e.target.value.trim() });
+                    }}
+                    className="text-[11px] text-white/50 font-light bg-transparent border-b border-white/5 hover:border-white/20 focus:border-white/40 outline-none w-full mt-1 placeholder:text-white/15"
+                  />
                   <p className="text-[10px] text-white/25 font-light mt-1">
                     {col.id}
                   </p>
@@ -361,6 +371,87 @@ export default function AdminPage() {
                 <span className="text-[9px] text-white/20 font-light">
                   displayed as: {col.publishAt ? `${col.publishAt.getMonth() + 1}.${col.publishAt.getDate()}` : `${col.createdAt.getMonth() + 1}.${col.createdAt.getDate()}`}
                 </span>
+              </div>
+
+              {/* Subtitle */}
+
+              {/* Media thumbnails with hide/show */}
+              <div className="mt-3">
+                <p className="text-[9px] tracking-[2px] text-white/25 mb-2">
+                  MEDIA ({col.media.filter((m: any) => !m.hidden).length}/{col.media.length} visible)
+                </p>
+                <div className="grid grid-cols-6 sm:grid-cols-8 gap-1.5">
+                  {col.media.map((m: any, idx: number) => (
+                    <div key={idx} className={`relative rounded overflow-hidden ${m.hidden ? 'opacity-25' : ''}`}>
+                      {m.type === 'video' ? (
+                        <div className="aspect-[3/4] bg-white/5 flex items-center justify-center text-[10px] text-white/30">VIDEO</div>
+                      ) : (
+                        <img src={m.file} className="aspect-[3/4] w-full object-cover" loading="lazy" />
+                      )}
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!db) return;
+                          const newMedia = [...col.media];
+                          newMedia[idx] = { ...newMedia[idx], hidden: !m.hidden };
+                          await updateDoc(doc(db, "vault_collections", col.id), { media: newMedia });
+                          fetchCollections();
+                        }}
+                        className={`absolute bottom-0 left-0 right-0 py-0.5 text-[7px] tracking-[1px] text-center cursor-pointer ${
+                          m.hidden
+                            ? 'bg-green-500/30 text-green-400'
+                            : 'bg-black/60 text-white/40 hover:text-red-400'
+                        }`}
+                      >
+                        {m.hidden ? 'SHOW' : 'HIDE'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Render Reel button */}
+                {(() => {
+                  const visibleImages = col.media.filter((m: any) => !m.hidden && m.type === 'image');
+                  if (visibleImages.length < 6) return null;
+                  return (
+                    <div className="mt-3">
+                      <button
+                        onClick={() => {
+                          const images = visibleImages.map((m: any) => m.file);
+                          const title = col.city.split(/[-—_]/)[0]?.trim() || col.city;
+                          const sub = (col as any).subtitle || col.city.split(/[-—_]/).slice(1).join(' ').trim() || '';
+                          const now = new Date();
+                          const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                          const day = now.getDate();
+                          const suffix = day === 1 || day === 21 || day === 31 ? "st" : day === 2 || day === 22 ? "nd" : day === 3 || day === 23 ? "rd" : "th";
+
+                          const config = {
+                            images,
+                            title,
+                            subtitle: sub,
+                            date: `${day}${suffix} ${months[now.getMonth()]}`,
+                            bgmStartSec: 10,
+                            collectionId: col.id,
+                          };
+
+                          const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = `reel-config-${col.id}.json`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                        className="px-4 py-1.5 text-[9px] tracking-[2px] border border-cyan-500/30 rounded text-cyan-400/70 hover:bg-cyan-500/10 cursor-pointer transition-colors"
+                      >
+                        DOWNLOAD REEL CONFIG ({visibleImages.length} imgs)
+                      </button>
+                      <p className="text-[8px] text-white/20 mt-1">
+                        npx tsx scripts/render-reel.ts --input config.json
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
               </div>}
             </div>
@@ -591,8 +682,15 @@ export default function AdminPage() {
                           window.addEventListener('mouseup', cancel);
                         }}
                       />
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5 flex justify-between">
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5 flex justify-between items-center">
                         <span className="text-[8px] text-white/50 font-light">#{shot.shotIndex}</span>
+                        <a
+                          href={`/api/download?url=${encodeURIComponent(shot.file)}&name=${pool.id}_shot${shot.shotIndex}.jpg`}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-[10px] text-white/40 hover:text-white/80 cursor-pointer leading-none"
+                          title="Download"
+                        >↓</a>
                         {shot.lookNum && <span className="text-[8px] text-yellow-400/70 font-light">L{shot.lookNum}</span>}
                       </div>
                       {/* Collection badge (top-right) */}
@@ -687,15 +785,19 @@ export default function AdminPage() {
       {/* Image Preview Modal */}
       {previewImg && (
         <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center cursor-pointer"
+          className="fixed inset-0 bg-black/80 z-[999] flex flex-col items-center justify-center gap-4 cursor-pointer"
           onClick={() => setPreviewImg(null)}
         >
           <img
             src={previewImg}
             alt="Preview"
-            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg"
+            className="max-w-[85vw] max-h-[80vh] object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
           />
+          <button
+            onClick={() => setPreviewImg(null)}
+            className="px-6 py-2 rounded-full bg-white/15 text-white/70 hover:bg-white/25 text-[12px] tracking-[3px] cursor-pointer"
+          >CLOSE</button>
         </div>
       )}
     </div>
