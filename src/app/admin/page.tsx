@@ -380,7 +380,7 @@ export default function AdminPage() {
                 </p>
                 <div className="grid grid-cols-6 sm:grid-cols-8 gap-1.5">
                   {col.media.map((m: any, idx: number) => (
-                    <div key={idx} className={`relative rounded overflow-hidden ${m.hidden ? 'opacity-25' : ''}`}>
+                    <div key={idx} className={`relative rounded overflow-hidden cursor-pointer ${m.hidden ? 'opacity-25' : ''}`} onClick={() => m.type === 'image' && setPreviewImg(m.file)}>
                       {m.type === 'video' ? (
                         <div className="aspect-[3/4] relative bg-white/5">
                           <video src={`${m.file}#t=2`} className="w-full h-full object-cover" muted preload="metadata" />
