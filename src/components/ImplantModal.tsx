@@ -18,6 +18,7 @@ interface ImplantModalProps {
   themeCity?: string;
   totalLooks?: number;
   brandName?: string;
+  compact?: boolean;
   onClose: () => void;
 }
 
@@ -30,7 +31,7 @@ const INJECT_STEPS = [
   "SEALING OUTPUT",
 ];
 
-export function ImplantModal({ image, entities, themeCity, totalLooks, brandName, onClose }: ImplantModalProps) {
+export function ImplantModal({ image, entities, themeCity, totalLooks, brandName, compact, onClose }: ImplantModalProps) {
   const [state, setState] = useState<ModalState>("select");
   const [selectedEntity, setSelectedEntity] = useState<VaultEntity | null>(null);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
@@ -369,11 +370,11 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, brandName
           </div>
 
           {/* Controls */}
-          <div className="p-6 space-y-6" onClick={() => setPreviewEntity(null)}>
+          <div className={compact ? "p-4 space-y-4" : "p-6 space-y-6"} onClick={() => setPreviewEntity(null)}>
             {state === "select" && (
               <>
-                {/* Scene injection count */}
-                <div className="flex items-center justify-between">
+                {/* Scene injection count — hidden in compact mode */}
+                {!compact && <div className="flex items-center justify-between">
                   <div className="flex-1" />
                   <div className="flex items-center gap-3">
                     {sceneCorrupted ? (
@@ -402,7 +403,7 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, brandName
                       </svg>
                     </button>
                   </div>
-                </div>
+                </div>}
 
                 {/* Height selector */}
                 <div>

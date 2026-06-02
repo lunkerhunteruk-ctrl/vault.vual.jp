@@ -68,6 +68,7 @@ export default function TryOnPage() {
         themeCity={city}
         totalLooks={1}
         brandName={brandName}
+        compact
         onClose={() => {
           // Go back or close window
           if (window.history.length > 1) {
