@@ -54,10 +54,15 @@ export function ThemeSection({ theme, isLatest, hasRecipe, onImageClick, onVideo
             {theme.date}
           </p>
 
-          <div className="flex items-center justify-center gap-3 px-4">
+          <div className="flex flex-col items-center gap-2 px-4">
             <h2 className="font-light text-center" style={{ color: "var(--vault-text)", fontSize: "clamp(20px, 6vw, 42px)", letterSpacing: "clamp(6px, 2vw, 16px)" }}>
               {theme.city}
             </h2>
+            {theme.subtitle && (
+              <p className="font-light text-center" style={{ color: "var(--vault-text-dim)", fontSize: "clamp(12px, 3vw, 22px)", letterSpacing: "clamp(3px, 1vw, 8px)" }}>
+                {theme.subtitle}
+              </p>
+            )}
 
             {/* INJECT badge */}
             {hasRecipe && (

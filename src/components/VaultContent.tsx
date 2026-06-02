@@ -67,6 +67,7 @@ export function VaultContent() {
     id: col.id,
     date: formatCollectionDate(col),
     city: col.city,
+    subtitle: col.subtitle || '',
     hasRecipe: col.hasRecipe ?? false,
     locations: [{
       id: col.id,

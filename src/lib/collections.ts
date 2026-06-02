@@ -4,7 +4,8 @@ import { lookFileToId, getRemainingInjections } from '@/lib/injection-count';
 
 export interface VaultCollection {
   id: string;
-  city: string;           // e.g. "TSUKIJI — KAITENSUSHI"
+  city: string;           // e.g. "FUSHIMI INARI"
+  subtitle?: string;      // e.g. "COS x ON"
   published: boolean;
   publishAt: Date | null;  // BST scheduled publish time
   createdAt: Date;
@@ -36,6 +37,7 @@ export async function getPublishedCollections(): Promise<VaultCollection[]> {
       results.push({
         id: d.id,
         city: data.city || '',
+        subtitle: data.subtitle || '',
         published,
         publishAt,
         createdAt: data.createdAt?.toDate?.() || new Date(),
