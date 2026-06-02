@@ -42,7 +42,11 @@ export function UserBadge() {
         {/* Avatar button */}
         <button
           onClick={() => (user ? setOpen(!open) : setShowAuth(true))}
-          className="w-9 h-9 rounded-full overflow-hidden border border-white/20 hover:border-white/40 transition-colors flex items-center justify-center bg-white/5"
+          className="w-9 h-9 rounded-full overflow-hidden border transition-colors flex items-center justify-center"
+          style={{
+            borderColor: "var(--vault-border, rgba(255,255,255,0.2))",
+            backgroundColor: "var(--vault-surface, rgba(255,255,255,0.05))",
+          }}
         >
           {user?.photoURL ? (
             /* eslint-disable-next-line @next/next/no-img-element */
@@ -58,7 +62,7 @@ export function UserBadge() {
               height="16"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="rgba(255,255,255,0.4)"
+              stroke="var(--vault-text-dim, rgba(150,150,150,0.6))"
               strokeWidth="1.5"
             >
               <circle cx="12" cy="8" r="4" />
