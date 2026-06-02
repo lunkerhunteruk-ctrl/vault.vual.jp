@@ -196,6 +196,108 @@ function layout8Portrait(patternIndex: number): PlacedCell[] {
   return patterns[patternIndex % patterns.length];
 }
 
+// 9 items (all 3:4). 12-col grid.
+function layout9Portrait(): PlacedCell[] {
+  return [
+    // Row 1: hero left + 2 small right
+    { colStart: 1, colEnd: 8, rowStart: 1, rowEnd: 8 },     // hero 7×7
+    { colStart: 8, colEnd: 13, rowStart: 1, rowEnd: 4 },    // 5×3
+    { colStart: 8, colEnd: 13, rowStart: 4, rowEnd: 8 },    // 5×4
+    // Row 2: 3 equal
+    { colStart: 1, colEnd: 5, rowStart: 8, rowEnd: 13 },    // 4×5
+    { colStart: 5, colEnd: 9, rowStart: 8, rowEnd: 13 },    // 4×5
+    { colStart: 9, colEnd: 13, rowStart: 8, rowEnd: 13 },   // 4×5
+    // Row 3: 3 equal
+    { colStart: 1, colEnd: 5, rowStart: 13, rowEnd: 18 },   // 4×5
+    { colStart: 5, colEnd: 9, rowStart: 13, rowEnd: 18 },   // 4×5
+    { colStart: 9, colEnd: 13, rowStart: 13, rowEnd: 18 },  // 4×5
+  ];
+}
+
+// 10 items (all 3:4). 12-col grid.
+function layout10Portrait(): PlacedCell[] {
+  return [
+    // Row 1: 2 hero
+    { colStart: 1, colEnd: 7, rowStart: 1, rowEnd: 7 },     // 6×6
+    { colStart: 7, colEnd: 13, rowStart: 1, rowEnd: 7 },    // 6×6
+    // Row 2: 4 equal
+    { colStart: 1, colEnd: 4, rowStart: 7, rowEnd: 11 },    // 3×4
+    { colStart: 4, colEnd: 7, rowStart: 7, rowEnd: 11 },    // 3×4
+    { colStart: 7, colEnd: 10, rowStart: 7, rowEnd: 11 },   // 3×4
+    { colStart: 10, colEnd: 13, rowStart: 7, rowEnd: 11 },  // 3×4
+    // Row 3: 4 equal
+    { colStart: 1, colEnd: 4, rowStart: 11, rowEnd: 15 },   // 3×4
+    { colStart: 4, colEnd: 7, rowStart: 11, rowEnd: 15 },   // 3×4
+    { colStart: 7, colEnd: 10, rowStart: 11, rowEnd: 15 },  // 3×4
+    { colStart: 10, colEnd: 13, rowStart: 11, rowEnd: 15 }, // 3×4
+  ];
+}
+
+// 11 items (all 3:4). 12-col grid.
+function layout11Portrait(): PlacedCell[] {
+  return [
+    // Row 1: hero left + 2 small right
+    { colStart: 1, colEnd: 8, rowStart: 1, rowEnd: 8 },     // hero 7×7
+    { colStart: 8, colEnd: 13, rowStart: 1, rowEnd: 4 },    // 5×3
+    { colStart: 8, colEnd: 13, rowStart: 4, rowEnd: 8 },    // 5×4
+    // Row 2: 4 equal
+    { colStart: 1, colEnd: 4, rowStart: 8, rowEnd: 12 },    // 3×4
+    { colStart: 4, colEnd: 7, rowStart: 8, rowEnd: 12 },    // 3×4
+    { colStart: 7, colEnd: 10, rowStart: 8, rowEnd: 12 },   // 3×4
+    { colStart: 10, colEnd: 13, rowStart: 8, rowEnd: 12 },  // 3×4
+    // Row 3: 4 equal
+    { colStart: 1, colEnd: 4, rowStart: 12, rowEnd: 16 },   // 3×4
+    { colStart: 4, colEnd: 7, rowStart: 12, rowEnd: 16 },   // 3×4
+    { colStart: 7, colEnd: 10, rowStart: 12, rowEnd: 16 },  // 3×4
+    { colStart: 10, colEnd: 13, rowStart: 12, rowEnd: 16 }, // 3×4
+  ];
+}
+
+// 12 items (all 3:4). 12-col grid.
+function layout12Portrait(): PlacedCell[] {
+  return [
+    // Row 1: 3 equal
+    { colStart: 1, colEnd: 5, rowStart: 1, rowEnd: 6 },     // 4×5
+    { colStart: 5, colEnd: 9, rowStart: 1, rowEnd: 6 },     // 4×5
+    { colStart: 9, colEnd: 13, rowStart: 1, rowEnd: 6 },    // 4×5
+    // Row 2: 2 hero
+    { colStart: 1, colEnd: 7, rowStart: 6, rowEnd: 12 },    // 6×6
+    { colStart: 7, colEnd: 13, rowStart: 6, rowEnd: 12 },   // 6×6
+    // Row 3: 4 equal
+    { colStart: 1, colEnd: 4, rowStart: 12, rowEnd: 16 },   // 3×4
+    { colStart: 4, colEnd: 7, rowStart: 12, rowEnd: 16 },   // 3×4
+    { colStart: 7, colEnd: 10, rowStart: 12, rowEnd: 16 },  // 3×4
+    { colStart: 10, colEnd: 13, rowStart: 12, rowEnd: 16 }, // 3×4
+    // Row 4: 3 equal
+    { colStart: 1, colEnd: 5, rowStart: 16, rowEnd: 21 },   // 4×5
+    { colStart: 5, colEnd: 9, rowStart: 16, rowEnd: 21 },   // 4×5
+    { colStart: 9, colEnd: 13, rowStart: 16, rowEnd: 21 },  // 4×5
+  ];
+}
+
+// 13 items (all 3:4). 12-col grid.
+function layout13Portrait(): PlacedCell[] {
+  return [
+    // Row 1: hero left + 2 small right
+    { colStart: 1, colEnd: 8, rowStart: 1, rowEnd: 8 },     // hero 7×7
+    { colStart: 8, colEnd: 13, rowStart: 1, rowEnd: 4 },    // 5×3
+    { colStart: 8, colEnd: 13, rowStart: 4, rowEnd: 8 },    // 5×4
+    // Row 2: 4 equal
+    { colStart: 1, colEnd: 4, rowStart: 8, rowEnd: 12 },    // 3×4
+    { colStart: 4, colEnd: 7, rowStart: 8, rowEnd: 12 },    // 3×4
+    { colStart: 7, colEnd: 10, rowStart: 8, rowEnd: 12 },   // 3×4
+    { colStart: 10, colEnd: 13, rowStart: 8, rowEnd: 12 },  // 3×4
+    // Row 3: 3 equal
+    { colStart: 1, colEnd: 5, rowStart: 12, rowEnd: 17 },   // 4×5
+    { colStart: 5, colEnd: 9, rowStart: 12, rowEnd: 17 },   // 4×5
+    { colStart: 9, colEnd: 13, rowStart: 12, rowEnd: 17 },  // 4×5
+    // Row 4: 3 equal
+    { colStart: 1, colEnd: 5, rowStart: 17, rowEnd: 22 },   // 4×5
+    { colStart: 5, colEnd: 9, rowStart: 17, rowEnd: 22 },   // 4×5
+    { colStart: 9, colEnd: 13, rowStart: 17, rowEnd: 22 },  // 4×5
+  ];
+}
+
 // Video (9:16) + 8 images. 12×16 grid, no overlap, no gaps.
 // i6/i7 are 3×4 (slight crop), i8 is 12×4 (wide cinematic).
 function videoPlus8Layout(): PlacedCell[] {
@@ -424,6 +526,36 @@ export function MondrianGrid({ media, collectionId, onImageClick, onVideoClick }
   } else if (!hasVideo && imageCount === 8 && aspects.every(a => a === "3:4")) {
     const patternIdx = hashString(collectionId || 'default') % 4;
     placements = layout8Portrait(patternIdx);
+  } else if (!hasVideo && imageCount === 9) {
+    placements = layout9Portrait();
+  } else if (!hasVideo && imageCount === 10) {
+    placements = layout10Portrait();
+  } else if (!hasVideo && imageCount === 11) {
+    placements = layout11Portrait();
+  } else if (!hasVideo && imageCount === 12) {
+    placements = layout12Portrait();
+  } else if (!hasVideo && imageCount === 13) {
+    placements = layout13Portrait();
+  } else if (hasVideo && imageCount >= 8 && imageCount <= 12) {
+    // Video + 8-12 images: use image-only layout for images, prepend video
+    const imgLayouts: Record<number, () => PlacedCell[]> = {
+      8: () => layout8Portrait(hashString(collectionId || 'default') % 4),
+      9: layout9Portrait,
+      10: layout10Portrait,
+      11: layout11Portrait,
+      12: layout12Portrait,
+    };
+    const imgLayout = imgLayouts[imageCount]?.() || layout12Portrait();
+    // Shift all rows down to make room for video
+    const videoRows = 8;
+    placements = [
+      { colStart: 1, colEnd: 13, rowStart: 1, rowEnd: videoRows + 1 }, // video full width
+      ...imgLayout.map(p => ({
+        ...p,
+        rowStart: p.rowStart + videoRows,
+        rowEnd: p.rowEnd + videoRows,
+      })),
+    ];
   } else if (!hasVideo && imageCount === 4) {
     placements = layout4Images();
   } else {
