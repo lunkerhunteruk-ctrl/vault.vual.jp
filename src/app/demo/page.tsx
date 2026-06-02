@@ -100,7 +100,7 @@ export default function DemoPage() {
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
                 <path d="M12 8v8M8 12h8" />
               </svg>
-              Try On in Your World
+              Try On in Our World
             </button>
 
             <div style={{ borderTop: "1px solid #e0e0e0", paddingTop: "16px" }}>
