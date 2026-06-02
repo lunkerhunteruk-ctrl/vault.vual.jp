@@ -538,25 +538,40 @@ export function MondrianGrid({ media, collectionId, onImageClick, onVideoClick }
     placements = layout13Portrait();
   } else if (hasVideo && imageCount >= 8 && imageCount <= 12) {
     // Video + 8-12 images: use image-only layout for images, prepend video
-    const imgLayouts: Record<number, () => PlacedCell[]> = {
-      8: () => layout8Portrait(hashString(collectionId || 'default') % 4),
-      9: layout9Portrait,
-      10: layout10Portrait,
-      11: layout11Portrait,
-      12: layout12Portrait,
-    };
-    const imgLayout = imgLayouts[imageCount]?.() || layout12Portrait();
-    // Video 6 cols × 12 rows = 3:4 ratio (each row = 100vw/12 * 4/3 height)
-    // 6 cols wide = 50vw, 12 rows tall = 12 * (100vw/12 * 4/3) = 66.7vw → ratio ~3:4
+    // Video left (6×12 = 3:4) + first 2 images stacked right, rest below
     const videoRows = 12;
-    placements = [
-      { colStart: 1, colEnd: 7, rowStart: 1, rowEnd: videoRows + 1 }, // video 6×12 (3:4)
-      ...imgLayout.map(p => ({
-        ...p,
-        rowStart: p.rowStart + videoRows,
-        rowEnd: p.rowEnd + videoRows,
-      })),
+    const rightImages = Math.min(2, imageCount); // 2 images beside video
+    const belowImages = imageCount - rightImages;
+
+    // Video + right side images
+    const topPlacements: PlacedCell[] = [
+      { colStart: 1, colEnd: 7, rowStart: 1, rowEnd: videoRows + 1 }, // video 6×12
+      { colStart: 7, colEnd: 13, rowStart: 1, rowEnd: 7 },           // img right top 6×6
     ];
+    if (rightImages >= 2) {
+      topPlacements.push({ colStart: 7, colEnd: 13, rowStart: 7, rowEnd: videoRows + 1 }); // img right bottom 6×6
+    }
+
+    // Remaining images below in rows of 3-4
+    const belowPlacements: PlacedCell[] = [];
+    let belowRow = videoRows + 1;
+    let remaining = belowImages;
+    while (remaining > 0) {
+      const cols = remaining >= 4 ? 4 : remaining >= 3 ? 3 : remaining;
+      const colWidth = Math.floor(12 / cols);
+      for (let c = 0; c < cols; c++) {
+        belowPlacements.push({
+          colStart: c * colWidth + 1,
+          colEnd: c === cols - 1 ? 13 : (c + 1) * colWidth + 1,
+          rowStart: belowRow,
+          rowEnd: belowRow + 5,
+        });
+      }
+      belowRow += 5;
+      remaining -= cols;
+    }
+
+    placements = [...topPlacements, ...belowPlacements];
   } else if (!hasVideo && imageCount === 4) {
     placements = layout4Images();
   } else {
