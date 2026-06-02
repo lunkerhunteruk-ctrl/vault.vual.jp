@@ -73,33 +73,33 @@ export function UserBadge() {
 
         {/* Dropdown menu */}
         {open && user && (
-          <div className="absolute top-12 right-0 w-56 bg-[#111] border border-white/10 rounded-xl p-4 space-y-4 shadow-2xl">
+          <div className="absolute top-12 right-0 w-56 rounded-xl p-4 space-y-4 shadow-2xl" style={{ background: "var(--vault-bg)", border: "1px solid var(--vault-border)" }}>
             {/* User info */}
             <div className="space-y-1">
-              <p className="text-[12px] text-white/80 font-light truncate">
+              <p className="text-[12px] font-light truncate" style={{ color: "var(--vault-text)" }}>
                 {user.displayName || user.email}
               </p>
-              <p className="text-[10px] text-white/30 font-light truncate">
+              <p className="text-[10px] font-light truncate" style={{ color: "var(--vault-text-dim)" }}>
                 {user.email}
               </p>
             </div>
 
-            <div className="h-[1px] bg-white/10" />
+            <div className="h-[1px]" style={{ background: "var(--vault-border)" }} />
 
             {/* Credits */}
             <div className="space-y-2">
-              <p className="text-[10px] tracking-[3px] text-white/40 font-light">
+              <p className="text-[10px] tracking-[3px] font-light" style={{ color: "var(--vault-text-dim)" }}>
                 CREDITS
               </p>
               <div className="flex justify-between text-[11px] font-light">
-                <span className="text-white/40">{navigator.language.startsWith("ja") ? "今日のフリー" : "Today's Free"}</span>
-                <span style={{ color: free > 0 ? "var(--vault-cyan)" : "rgba(255,255,255,0.2)" }}>
+                <span style={{ color: "var(--vault-text-dim)" }}>{navigator.language.startsWith("ja") ? "今日のフリー" : "Today's Free"}</span>
+                <span style={{ color: free > 0 ? "var(--vault-cyan)" : "var(--vault-text-dim)" }}>
                   {free} / 5
                 </span>
               </div>
               <div className="flex justify-between text-[11px] font-light">
-                <span className="text-white/40">Paid</span>
-                <span style={{ color: paidCredits > 0 ? "var(--vault-cyan)" : "rgba(255,255,255,0.2)" }}>
+                <span style={{ color: "var(--vault-text-dim)" }}>Paid</span>
+                <span style={{ color: paidCredits > 0 ? "var(--vault-cyan)" : "var(--vault-text-dim)" }}>
                   {paidCredits}
                 </span>
               </div>
@@ -107,8 +107,8 @@ export function UserBadge() {
 
             {/* Points */}
             <div className="flex justify-between text-[11px] font-light">
-              <span className="text-white/40">{navigator.language.startsWith("ja") ? "ポイント" : "Points"}</span>
-              <span style={{ color: points > 0 ? "var(--vault-gold)" : "rgba(255,255,255,0.2)" }}>
+              <span style={{ color: "var(--vault-text-dim)" }}>{navigator.language.startsWith("ja") ? "ポイント" : "Points"}</span>
+              <span style={{ color: points > 0 ? "var(--vault-gold)" : "var(--vault-text-dim)" }}>
                 {points} pt
               </span>
             </div>
@@ -119,7 +119,8 @@ export function UserBadge() {
                 setOpen(false);
                 setShowMyVault(true);
               }}
-              className="w-full py-2.5 text-[10px] tracking-[3px] font-light border border-white/10 hover:border-white/25 text-white/50 rounded-lg transition-colors"
+              className="w-full py-2.5 text-[10px] tracking-[3px] font-light rounded-lg transition-colors"
+              style={{ border: "1px solid var(--vault-border)", color: "var(--vault-text-dim)" }}
             >
               MY VAULT
             </button>
@@ -130,12 +131,13 @@ export function UserBadge() {
                 setOpen(false);
                 setShowCredits(true);
               }}
-              className="w-full py-2.5 text-[10px] tracking-[3px] font-light border border-[var(--vault-cyan)]/20 hover:border-[var(--vault-cyan)]/50 text-[var(--vault-cyan)] rounded-lg transition-colors"
+              className="w-full py-2.5 text-[10px] tracking-[3px] font-light rounded-lg transition-colors"
+              style={{ border: "1px solid var(--vault-cyan-dim)", color: "var(--vault-cyan)" }}
             >
               + BUY CREDITS
             </button>
 
-            <div className="h-[1px] bg-white/10" />
+            <div className="h-[1px]" style={{ background: "var(--vault-border)" }} />
 
             {/* Sign out */}
             <button
@@ -144,7 +146,8 @@ export function UserBadge() {
                 setUser(null);
                 setOpen(false);
               }}
-              className="w-full text-left text-[10px] tracking-[2px] text-white/30 hover:text-white/50 transition-colors font-light"
+              className="w-full text-left text-[10px] tracking-[2px] transition-colors font-light"
+              style={{ color: "var(--vault-text-dim)" }}
             >
               SIGN OUT
             </button>
