@@ -279,7 +279,7 @@ export function ImplantModal({ image, entities, themeCity, totalLooks, brandName
 
         {/* Modal sheet */}
         <div
-          className="relative w-full max-w-lg max-h-[80vh] rounded-2xl overflow-y-auto animate-slide-up"
+          className="relative w-full max-w-lg max-h-[95vh] rounded-2xl overflow-y-auto animate-slide-up"
           style={{ background: "var(--vault-bg)", border: "1px solid var(--vault-border)" }}
           onClick={(e) => e.stopPropagation()}
         >
