@@ -86,8 +86,8 @@ export default function DemoPage() {
                 fontWeight: 400,
                 letterSpacing: "3px",
                 textTransform: "uppercase",
-                background: "transparent",
-                color: "#000",
+                background: "#000",
+                color: "#fff",
                 border: "1px solid #000",
                 cursor: "pointer",
                 transition: "all 0.2s",
@@ -97,12 +97,10 @@ export default function DemoPage() {
                 gap: "10px",
               }}
               onMouseEnter={(e) => {
-                (e.target as HTMLElement).style.background = "#000";
-                (e.target as HTMLElement).style.color = "#fff";
+                (e.target as HTMLElement).style.background = "#222";
               }}
               onMouseLeave={(e) => {
-                (e.target as HTMLElement).style.background = "transparent";
-                (e.target as HTMLElement).style.color = "#000";
+                (e.target as HTMLElement).style.background = "#000";
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
