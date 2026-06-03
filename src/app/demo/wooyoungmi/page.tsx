@@ -57,8 +57,8 @@ export default function WooyoungmiDemoPage() {
                 fontWeight: 400,
                 letterSpacing: "3px",
                 textTransform: "uppercase",
-                background: "transparent",
-                color: "#000",
+                background: "#000",
+                color: "#fff",
                 border: "1px solid #000",
                 cursor: "pointer",
                 transition: "all 0.2s",
@@ -68,14 +68,10 @@ export default function WooyoungmiDemoPage() {
                 gap: "8px",
               }}
               onMouseEnter={(e) => {
-                const el = e.currentTarget;
-                el.style.background = "#000";
-                el.style.color = "#fff";
+                e.currentTarget.style.background = "#222";
               }}
               onMouseLeave={(e) => {
-                const el = e.currentTarget;
-                el.style.background = "transparent";
-                el.style.color = "#000";
+                e.currentTarget.style.background = "#000";
               }}
             >
               Try On in Our World

@@ -94,14 +94,14 @@ export default function LowClassicDemoPage() {
                 fontWeight: 400,
                 letterSpacing: "3px",
                 textTransform: "uppercase",
-                background: "transparent",
-                color: "#000",
+                background: "#000",
+                color: "#fff",
                 border: "1px solid #000",
                 cursor: "pointer",
                 transition: "all 0.2s",
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "#000"; e.currentTarget.style.color = "#fff"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#000"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "#222"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "#000"; }}
             >
               Try On in Our World
             </button>
