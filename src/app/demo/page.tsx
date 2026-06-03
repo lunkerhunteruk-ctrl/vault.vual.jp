@@ -36,16 +36,25 @@ export default function DemoPage() {
 
         {/* Product layout */}
         <div style={{ display: "flex", maxWidth: "1400px", margin: "0 auto", padding: "0 40px" }}>
-          {/* Left: Product image */}
+          {/* Left: Product images */}
           <div style={{ flex: "0 0 55%", position: "relative" }}>
             {/* Bookmark icon */}
-            <div style={{ position: "absolute", top: "16px", right: "16px", fontSize: "20px", color: "#999", cursor: "pointer" }}>♡</div>
+            <div style={{ position: "absolute", top: "16px", right: "16px", fontSize: "20px", color: "#999", cursor: "pointer", zIndex: 1 }}>♡</div>
             <img
-              src="https://balenciaga.dam.kering.com/m/6ac5481d3d04cacc/Large-A00178TUVM51000_F.jpg"
-              alt="Long Sleeve Maxi Dress in Black"
-              style={{ width: "100%", maxHeight: "85vh", objectFit: "contain", background: "#f8f8f8" }}
+              src="/demo-assets/A00178TUVM51000_F.jpg"
+              alt="Long Sleeve Maxi Dress in Black - Front"
+              style={{ width: "100%", objectFit: "contain", background: "#f8f8f8" }}
               onError={(e) => {
-                // Fallback if image blocked
+                (e.target as HTMLImageElement).style.background = "#f0f0f0";
+                (e.target as HTMLImageElement).style.minHeight = "600px";
+                (e.target as HTMLImageElement).alt = "Product Image";
+              }}
+            />
+            <img
+              src="/demo-assets/A00178TUVM51000_G.jpg"
+              alt="Long Sleeve Maxi Dress in Black - Back"
+              style={{ width: "100%", objectFit: "contain", background: "#f8f8f8", marginTop: "2px" }}
+              onError={(e) => {
                 (e.target as HTMLImageElement).style.background = "#f0f0f0";
                 (e.target as HTMLImageElement).style.minHeight = "600px";
                 (e.target as HTMLImageElement).alt = "Product Image";
