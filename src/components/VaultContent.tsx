@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ThemeSection } from "@/components/ThemeSection";
+import { ArticleBody } from "@/components/ArticleBody";
 import { ImplantModal } from "@/components/ImplantModal";
 import { VaultMedia } from "@/data/types";
 import { sampleEntities } from "@/data/sample";
@@ -10,12 +11,29 @@ import { useVaultStore } from "@/lib/store";
 import { UserBadge } from "@/components/UserBadge";
 import { VideoModal } from "@/components/VideoModal";
 import { getPublishedCollections, formatCollectionDate, VaultCollection } from "@/lib/collections";
+import { getPublishedArticles, VaultArticle, ArticleCategory } from "@/lib/articles";
 import { LightboxModal } from "@/components/LightboxModal";
 import { getBrandByDomain, VaultBrand } from "@/lib/brand";
 
+// "Experience" = the try-on Mondrian collections; the rest are editorial article categories.
+type FilterCat = "All" | "Experience" | ArticleCategory;
+const ARTICLE_CATS: ArticleCategory[] = ["Fashion", "Art", "Lifestyle", "Culture", "Interview"];
+
+// Unified feed item: a try-on collection (Mondrian grid) or an editorial article,
+// both keyed by their release datetime so the newest sits on top.
+type FeedItem =
+  | { kind: "collection"; date: number; col: VaultCollection }
+  | { kind: "article"; date: number; art: VaultArticle };
+
+const releaseTime = (d: { publishAt: Date | null; createdAt: Date }) =>
+  (d.publishAt ?? d.createdAt).getTime();
+
 export function VaultContent() {
   const [collections, setCollections] = useState<VaultCollection[]>([]);
+  const [articles, setArticles] = useState<VaultArticle[]>([]);
+  const [activeCat, setActiveCat] = useState<FilterCat>("All");
   const [brand, setBrand] = useState<VaultBrand | null>(null);
+  const [isBrandMode, setIsBrandMode] = useState(false);
   const [selectedImage, setSelectedImage] = useState<
     (VaultMedia & { locationId: string }) | null
   >(null);
@@ -29,21 +47,22 @@ export function VaultContent() {
   const user = useVaultStore((s) => s.user);
   const syncCredits = useVaultStore((s) => s.syncFromFirestore);
 
-  // Detect brand from domain, then fetch collections
+  // Detect brand from domain, then fetch content
   useEffect(() => {
     getBrandByDomain(window.location.hostname).then((b) => {
       setBrand(b);
       if (b) {
-        // Brand mode: fetch by brandId, no tier filter
+        // Brand mode: collections by brandId only, no articles, no tier filter
+        setIsBrandMode(true);
         getPublishedCollections(undefined, b.id).then(setCollections);
-        // Apply brand accent color
         document.documentElement.style.setProperty('--vault-cyan', b.accentColor);
         document.documentElement.style.setProperty('--vault-cyan-dim', b.accentColor + '40');
-        // Update page title
         document.title = `${b.name} — Try On`;
       } else {
-        // VUAL mode: high tier only
+        // VUAL mode: high tier — both try-on collections and editorial articles
+        setIsBrandMode(false);
         getPublishedCollections("high").then(setCollections);
+        getPublishedArticles("high").then(setArticles);
       }
     });
   }, []);
@@ -69,9 +88,7 @@ export function VaultContent() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("credit_success") === "true") {
       const credits = parseInt(params.get("credits") || "0", 10);
-      if (credits > 0) {
-        addPaidCredits(credits);
-      }
+      if (credits > 0) addPaidCredits(credits);
       window.history.replaceState({}, "", "/");
     }
     if (params.get("credit_canceled") === "true") {
@@ -79,7 +96,29 @@ export function VaultContent() {
     }
   }, [addPaidCredits]);
 
-  const themes = collections.map((col) => ({
+  // Merge collections + articles into one feed, newest first.
+  const feed = useMemo<FeedItem[]>(() => {
+    const items: FeedItem[] = [
+      ...collections.map((col): FeedItem => ({ kind: "collection", date: releaseTime(col), col })),
+      ...articles.map((art): FeedItem => ({ kind: "article", date: releaseTime(art), art })),
+    ];
+    items.sort((a, b) => b.date - a.date);
+    // "All" = mixed feed; "Experience" = try-on collections only; else = that article category.
+    if (activeCat === "All") return items;
+    if (activeCat === "Experience") return items.filter((it) => it.kind === "collection");
+    return items.filter((it) => it.kind === "article" && it.art.category === activeCat);
+  }, [collections, articles, activeCat]);
+
+  // Only surface tabs that actually have content right now.
+  const availableCats = useMemo<FilterCat[]>(() => {
+    const cats: FilterCat[] = ["All"];
+    if (collections.length > 0) cats.push("Experience");
+    const present = new Set(articles.map((a) => a.category));
+    ARTICLE_CATS.forEach((c) => { if (present.has(c)) cats.push(c); });
+    return cats;
+  }, [collections, articles]);
+
+  const colToTheme = (col: VaultCollection) => ({
     id: col.id,
     date: formatCollectionDate(col),
     city: col.city,
@@ -92,32 +131,57 @@ export function VaultContent() {
       film: "leicaPortra800",
       media: col.media.map((m) => ({ ...m, file: m.file })),
     }],
-  }));
+  });
 
   return (
     <>
       <UserBadge />
 
-      {/* All collections — Mondrian grid */}
-      {themes.map((theme, idx) => (
-        <ThemeSection
-          key={theme.id}
-          theme={theme}
-          isLatest={idx === 0}
-          hasRecipe={theme.hasRecipe}
-          onImageClick={(img) => {
-            if (theme.hasRecipe) {
-              setSelectedImage(img);
-              setSelectedCity(theme.city);
-              setSelectedHasRecipe(true);
-              setSelectedTotalLooks(theme.locations.flatMap(l => l.media).filter(m => m.type === "image").length);
-            } else {
-              setLightboxSrc(img.file);
-            }
-          }}
-          onVideoClick={setVideoSrc}
-        />
-      ))}
+      {/* Category filter — VUAL mode only. Plain text on the page, no bar. */}
+      {!isBrandMode && availableCats.length > 1 && (
+        <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 px-4 pt-6 pb-12">
+          {availableCats.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCat(cat)}
+              className="text-[10px] tracking-[3px] font-light cursor-pointer pb-1 transition-opacity hover:opacity-70"
+              style={{
+                color: activeCat === cat ? "var(--vault-text, #111)" : "var(--vault-text-dim, rgba(0,0,0,0.35))",
+                borderBottom: activeCat === cat ? "1px solid var(--vault-text, #111)" : "1px solid transparent",
+              }}
+            >
+              {cat.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Unified feed: try-on Mondrian grids + editorial articles, newest first */}
+      {feed.map((item, idx) =>
+        item.kind === "collection" ? (
+          <ThemeSection
+            key={`col-${item.col.id}`}
+            theme={colToTheme(item.col)}
+            isLatest={idx === 0}
+            hasRecipe={item.col.hasRecipe ?? false}
+            onImageClick={(img) => {
+              if (item.col.hasRecipe) {
+                setSelectedImage(img);
+                setSelectedCity(item.col.city);
+                setSelectedHasRecipe(true);
+                setSelectedTotalLooks(item.col.media.filter((m) => m.type === "image").length);
+              } else {
+                setLightboxSrc(img.file);
+              }
+            }}
+            onVideoClick={setVideoSrc}
+          />
+        ) : (
+          <div key={`art-${item.art.id}`} style={{ borderTop: "0.5px solid var(--vault-border, rgba(0,0,0,0.08))" }}>
+            <ArticleBody article={item.art} />
+          </div>
+        )
+      )}
 
       <VideoModal src={videoSrc} onClose={() => setVideoSrc(null)} />
 
@@ -130,10 +194,7 @@ export function VaultContent() {
         onClose={() => { setSelectedImage(null); setSelectedHasRecipe(false); }}
       />
 
-      <LightboxModal
-        src={lightboxSrc}
-        onClose={() => setLightboxSrc(null)}
-      />
+      <LightboxModal src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
     </>
   );
 }
