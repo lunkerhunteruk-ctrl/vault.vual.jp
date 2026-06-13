@@ -1,9 +1,161 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { collection, getDocs, doc, updateDoc, getDoc, setDoc, deleteDoc, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getAllCollections, togglePublished, setPublishSchedule, VaultCollection } from "@/lib/collections";
+import { getAllArticles, createArticle, updateArticle, toggleArticlePublished, deleteArticle, VaultArticle, ArticleBlock, ArticleCategory, BlockType } from "@/lib/articles";
+// ── R2 image upload helper ──
+async function uploadImageToR2(file: File): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    headers: { "x-admin-key": "vual-vault-2026" },
+    body: form,
+  });
+  if (!res.ok) throw new Error("Upload failed");
+  const { url } = await res.json();
+  return url;
+}
+
+// ── Drop zone component ──
+function ImageDropZone({
+  currentUrl,
+  onUploaded,
+  label,
+  className,
+  previewHeight = "h-24",
+}: {
+  currentUrl?: string;
+  onUploaded: (url: string) => void;
+  label?: string;
+  className?: string;
+  previewHeight?: string;
+}) {
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      const url = await uploadImageToR2(files[0]);
+      onUploaded(url);
+    } catch (e) {
+      alert("Upload failed: " + (e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div
+      className={`relative border border-dashed rounded transition-colors cursor-pointer ${
+        dragging ? "border-white/50 bg-white/5" : "border-white/15 hover:border-white/30"
+      } ${className || ""}`}
+      onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={(e) => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files); }}
+      onClick={() => inputRef.current?.click()}
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleFiles(e.target.files)}
+      />
+      {uploading ? (
+        <div className="flex items-center justify-center py-6">
+          <span className="text-[9px] tracking-[2px] text-white/40 animate-pulse">UPLOADING...</span>
+        </div>
+      ) : currentUrl ? (
+        <div className="p-2">
+          <img src={currentUrl} className={`${previewHeight} rounded object-cover w-full`} />
+          <p className="text-[8px] text-white/20 mt-1 truncate">{currentUrl}</p>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-6 gap-1">
+          <span className="text-[16px] text-white/15">↑</span>
+          <span className="text-[8px] tracking-[2px] text-white/25">{label || "DROP IMAGE OR CLICK"}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Multi-image drop zone (for gallery blocks) ──
+function GalleryDropZone({
+  images,
+  onUpdated,
+}: {
+  images: string[];
+  onUpdated: (urls: string[]) => void;
+}) {
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      const urls = await Promise.all(
+        Array.from(files).map((f) => uploadImageToR2(f))
+      );
+      onUpdated([...images, ...urls]);
+    } catch (e) {
+      alert("Upload failed: " + (e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div>
+      {images.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {images.map((url, i) => (
+            <div key={i} className="relative group">
+              <img src={url} className="h-16 w-16 object-cover rounded" />
+              <button
+                onClick={() => onUpdated(images.filter((_, j) => j !== i))}
+                className="absolute -top-1 -right-1 w-4 h-4 bg-red-500/60 rounded-full text-[8px] text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center"
+              >×</button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div
+        className={`border border-dashed rounded transition-colors cursor-pointer ${
+          dragging ? "border-white/50 bg-white/5" : "border-white/15 hover:border-white/30"
+        }`}
+        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files); }}
+        onClick={() => inputRef.current?.click()}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => handleFiles(e.target.files)}
+        />
+        <div className="flex items-center justify-center py-3 gap-2">
+          {uploading ? (
+            <span className="text-[9px] tracking-[2px] text-white/40 animate-pulse">UPLOADING...</span>
+          ) : (
+            <span className="text-[8px] tracking-[2px] text-white/25">+ DROP IMAGES OR CLICK</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface PoolData {
   id: string;
@@ -47,6 +199,11 @@ export default function AdminPage() {
   const [openColls, setOpenColls] = useState<Set<string>>(new Set());
   const [openInjGroups, setOpenInjGroups] = useState<Set<string>>(new Set());
   const [tierFilter, setTierFilter] = useState<"all" | "high" | "daily">("all");
+
+  // Articles
+  const [articles, setArticles] = useState<VaultArticle[]>([]);
+  const [editingArticle, setEditingArticle] = useState<VaultArticle | null>(null);
+  const [openArticles, setOpenArticles] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -105,6 +262,11 @@ export default function AdminPage() {
     setColls(data);
   };
 
+  const fetchArticles = async () => {
+    const data = await getAllArticles();
+    setArticles(data);
+  };
+
   const fetchPools = async () => {
     if (!db) return;
     const snapshot = await getDocs(collection(db, "vault_pools"));
@@ -130,7 +292,7 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    Promise.all([fetchCounts(), fetchUsers(), fetchCollections(), fetchPools()]).then(() => setLoading(false));
+    Promise.all([fetchCounts(), fetchUsers(), fetchCollections(), fetchPools(), fetchArticles()]).then(() => setLoading(false));
   }, []);
 
   const updateCount = async (lookId: string, remaining: number) => {
@@ -365,6 +527,7 @@ export default function AdminPage() {
                     onBlur={async (e) => {
                       if (!db) return;
                       await updateDoc(doc(db, "vault_collections", col.id), { subtitle: e.target.value.trim() });
+                      fetchCollections();
                     }}
                     className="text-[11px] text-white/50 font-light bg-transparent border-b border-white/5 hover:border-white/20 focus:border-white/40 outline-none w-full mt-1 placeholder:text-white/15"
                   />
@@ -422,7 +585,8 @@ export default function AdminPage() {
                       const utc = new Date(bst.getTime() - 3600000);
                       await setPublishSchedule(col.id, utc);
                     } else {
-                      await setPublishSchedule(col.id, null);
+                      // Clear schedule → set publishAt to now (not null, so date is preserved)
+                      await setPublishSchedule(col.id, new Date());
                     }
                     fetchCollections();
                   }}
@@ -440,7 +604,8 @@ export default function AdminPage() {
                   defaultValue={col.publishAt ? col.publishAt.toISOString().slice(0, 10) : col.createdAt.toISOString().slice(0, 10)}
                   onChange={async (e) => {
                     if (e.target.value) {
-                      const d = new Date(e.target.value + "T12:00:00Z");
+                      // Use T00:00:00Z so it's always in the past for display date purposes
+                      const d = new Date(e.target.value + "T00:00:00Z");
                       await setPublishSchedule(col.id, d);
                       fetchCollections();
                     }
@@ -623,6 +788,413 @@ export default function AdminPage() {
           </div>
         ))}
       </div>
+
+      {/* Articles */}
+      <h2 className="text-[14px] tracking-[6px] text-white/40 font-light mt-12 mb-4">
+        ARTICLES
+      </h2>
+
+      <button
+        onClick={async () => {
+          const id = await createArticle({
+            title: "Untitled",
+            coverImage: "",
+            category: "Fashion",
+            published: false,
+            publishAt: null,
+            tier: "high",
+            blocks: [],
+          });
+          fetchArticles();
+          setOpenArticles(new Set([id]));
+        }}
+        className="px-4 py-2 text-[10px] tracking-[3px] border border-white/20 rounded text-white/50 hover:text-white/80 hover:border-white/40 cursor-pointer transition-colors mb-4"
+      >
+        + NEW ARTICLE
+      </button>
+
+      <div className="space-y-2 max-w-2xl">
+        {articles.map((article) => {
+          const isOpen = openArticles.has(article.id);
+          const now = new Date();
+          const isScheduled = article.publishAt && article.publishAt > now;
+          const isLive = article.published && (!article.publishAt || article.publishAt <= now);
+
+          return (
+            <div key={article.id} className="border border-white/10 rounded-lg">
+              {/* Header */}
+              <div
+                className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/[0.02]"
+                onClick={() => {
+                  const next = new Set(openArticles);
+                  if (isOpen) next.delete(article.id); else next.add(article.id);
+                  setOpenArticles(next);
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] text-white/20">{isOpen ? "▼" : "▶"}</span>
+                  <span className="text-[13px] text-white/70 font-light">{article.title || "Untitled"}</span>
+                  <span className="text-[8px] tracking-[1px] text-white/25 px-1.5 py-0.5 rounded bg-white/5">{article.category}</span>
+                  <span className="text-[10px] text-white/25">{article.blocks.length} blocks</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {article.tier && (
+                    <span className={`text-[8px] tracking-[2px] font-light px-2 py-0.5 rounded ${
+                      article.tier === "high" ? "bg-purple-500/15 text-purple-400/70" : "bg-cyan-500/15 text-cyan-400/70"
+                    }`}>
+                      {article.tier.toUpperCase()}
+                    </span>
+                  )}
+                  <span className={`text-[9px] tracking-[2px] font-light px-2 py-1 rounded ${
+                    isLive ? "bg-green-500/20 text-green-400" :
+                    isScheduled ? "bg-yellow-500/20 text-yellow-400" :
+                    "bg-white/5 text-white/25"
+                  }`}>
+                    {isLive ? "LIVE" : isScheduled ? "SCHEDULED" : "DRAFT"}
+                  </span>
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await toggleArticlePublished(article.id, !article.published);
+                      fetchArticles();
+                    }}
+                    className={`px-3 py-1 text-[10px] tracking-[2px] border rounded cursor-pointer transition-colors ${
+                      article.published
+                        ? "border-green-500/30 text-green-400 hover:border-green-500/60"
+                        : "border-white/10 text-white/30 hover:border-white/30"
+                    }`}
+                  >
+                    {article.published ? "ON" : "OFF"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Body — collapsible editor */}
+              {isOpen && (
+                <div className="px-4 pb-4 space-y-3 border-t border-white/5 pt-3">
+                  {/* Title */}
+                  <div>
+                    <label className="text-[9px] tracking-[1px] text-white/25 block mb-1">TITLE</label>
+                    <input
+                      type="text"
+                      defaultValue={article.title}
+                      onBlur={async (e) => {
+                        const v = e.target.value.trim();
+                        if (v !== article.title) {
+                          await updateArticle(article.id, { title: v });
+                          fetchArticles();
+                        }
+                      }}
+                      className="w-full text-[14px] text-white/80 font-light bg-transparent border-b border-white/10 hover:border-white/30 focus:border-white/50 outline-none py-1"
+                    />
+                  </div>
+
+                  {/* Cover image removed — use a HERO (full-bleed) block at the top instead */}
+
+                  {/* Category + Tier */}
+                  <div className="flex gap-6">
+                    <div>
+                      <label className="text-[9px] tracking-[1px] text-white/25 block mb-1">CATEGORY</label>
+                      <div className="flex gap-1">
+                        {(["Fashion", "Art", "Lifestyle", "Culture", "Interview"] as ArticleCategory[]).map((cat) => (
+                          <button
+                            key={cat}
+                            onClick={async () => {
+                              await updateArticle(article.id, { category: cat });
+                              fetchArticles();
+                            }}
+                            className={`px-2 py-1 text-[9px] tracking-[1px] rounded cursor-pointer transition-colors ${
+                              article.category === cat
+                                ? "bg-white/15 text-white/70 border border-white/20"
+                                : "border border-white/10 text-white/25 hover:text-white/40"
+                            }`}
+                          >
+                            {cat}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[9px] tracking-[1px] text-white/25 block mb-1">TIER</label>
+                      <div className="flex gap-1">
+                        {(["high", "daily"] as const).map((t) => (
+                          <button
+                            key={t}
+                            onClick={async () => {
+                              await updateArticle(article.id, { tier: t });
+                              fetchArticles();
+                            }}
+                            className={`px-3 py-1 text-[9px] tracking-[2px] rounded cursor-pointer transition-colors ${
+                              article.tier === t
+                                ? t === "high" ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                                : "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
+                                : "border border-white/10 text-white/20 hover:text-white/40"
+                            }`}
+                          >
+                            {t.toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Blocks */}
+                  <div>
+                    <label className="text-[9px] tracking-[1px] text-white/25 block mb-2">BLOCKS</label>
+                    <div className="space-y-2">
+                      {article.blocks.map((block, idx) => (
+                        <div key={block.id} className="border border-white/8 rounded p-3 relative group">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[8px] tracking-[2px] text-white/30">{block.type.toUpperCase()}</span>
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {idx > 0 && (
+                                <button
+                                  onClick={async () => {
+                                    const newBlocks = [...article.blocks];
+                                    [newBlocks[idx - 1], newBlocks[idx]] = [newBlocks[idx], newBlocks[idx - 1]];
+                                    await updateArticle(article.id, { blocks: newBlocks });
+                                    fetchArticles();
+                                  }}
+                                  className="w-5 h-5 text-[9px] text-white/30 hover:text-white/60 cursor-pointer"
+                                >↑</button>
+                              )}
+                              {idx < article.blocks.length - 1 && (
+                                <button
+                                  onClick={async () => {
+                                    const newBlocks = [...article.blocks];
+                                    [newBlocks[idx], newBlocks[idx + 1]] = [newBlocks[idx + 1], newBlocks[idx]];
+                                    await updateArticle(article.id, { blocks: newBlocks });
+                                    fetchArticles();
+                                  }}
+                                  className="w-5 h-5 text-[9px] text-white/30 hover:text-white/60 cursor-pointer"
+                                >↓</button>
+                              )}
+                              <button
+                                onClick={async () => {
+                                  if (!confirm("Delete this block?")) return;
+                                  const newBlocks = article.blocks.filter((_, i) => i !== idx);
+                                  await updateArticle(article.id, { blocks: newBlocks });
+                                  fetchArticles();
+                                }}
+                                className="w-5 h-5 text-[9px] text-red-400/40 hover:text-red-400/80 cursor-pointer"
+                              >×</button>
+                            </div>
+                          </div>
+
+                          {/* Block editor by type */}
+                          {block.type === "fullBleed" && (
+                            <div className="space-y-2">
+                              <ImageDropZone
+                                currentUrl={(block as any).image}
+                                label="DROP HERO IMAGE"
+                                previewHeight="h-20"
+                                onUploaded={async (url) => {
+                                  const newBlocks = [...article.blocks];
+                                  (newBlocks[idx] as any).image = url;
+                                  await updateArticle(article.id, { blocks: newBlocks });
+                                  fetchArticles();
+                                }}
+                              />
+                              <input
+                                type="text"
+                                defaultValue={(block as any).heading}
+                                placeholder="Heading (optional)"
+                                onBlur={async (e) => {
+                                  const newBlocks = [...article.blocks];
+                                  (newBlocks[idx] as any).heading = e.target.value.trim();
+                                  await updateArticle(article.id, { blocks: newBlocks });
+                                  fetchArticles();
+                                }}
+                                className="w-full text-[10px] text-white/50 bg-transparent border-b border-white/8 focus:border-white/30 outline-none py-1 placeholder:text-white/15"
+                              />
+                            </div>
+                          )}
+
+                          {block.type === "textImage" && (
+                            <div className="space-y-2">
+                              <textarea
+                                defaultValue={(block as any).body}
+                                placeholder="Body text"
+                                rows={3}
+                                onBlur={async (e) => {
+                                  const newBlocks = [...article.blocks];
+                                  (newBlocks[idx] as any).body = e.target.value;
+                                  await updateArticle(article.id, { blocks: newBlocks });
+                                  fetchArticles();
+                                }}
+                                className="w-full text-[10px] text-white/50 bg-transparent border border-white/8 focus:border-white/30 outline-none p-2 rounded resize-y placeholder:text-white/15"
+                              />
+                              <ImageDropZone
+                                currentUrl={(block as any).image}
+                                label="DROP IMAGE"
+                                previewHeight="h-16"
+                                onUploaded={async (url) => {
+                                  const newBlocks = [...article.blocks];
+                                  (newBlocks[idx] as any).image = url;
+                                  await updateArticle(article.id, { blocks: newBlocks });
+                                  fetchArticles();
+                                }}
+                              />
+                              <div className="flex gap-1">
+                                {(["left", "right"] as const).map((s) => (
+                                  <button
+                                    key={s}
+                                    onClick={async () => {
+                                      const newBlocks = [...article.blocks];
+                                      (newBlocks[idx] as any).side = s;
+                                      await updateArticle(article.id, { blocks: newBlocks });
+                                      fetchArticles();
+                                    }}
+                                    className={`px-2 py-0.5 text-[8px] tracking-[1px] rounded cursor-pointer ${
+                                      (block as any).side === s ? "bg-white/15 text-white/60" : "text-white/20 hover:text-white/40"
+                                    }`}
+                                  >IMG {s.toUpperCase()}</button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {block.type === "gallery" && (
+                            <GalleryDropZone
+                              images={(block as any).images || []}
+                              onUpdated={async (urls) => {
+                                const newBlocks = [...article.blocks];
+                                (newBlocks[idx] as any).images = urls;
+                                await updateArticle(article.id, { blocks: newBlocks });
+                                fetchArticles();
+                              }}
+                            />
+                          )}
+
+                          {block.type === "quote" && (
+                            <div className="space-y-2">
+                              <textarea
+                                defaultValue={(block as any).text}
+                                placeholder="Quote text"
+                                rows={2}
+                                onBlur={async (e) => {
+                                  const newBlocks = [...article.blocks];
+                                  (newBlocks[idx] as any).text = e.target.value;
+                                  await updateArticle(article.id, { blocks: newBlocks });
+                                  fetchArticles();
+                                }}
+                                className="w-full text-[10px] text-white/50 bg-transparent border border-white/8 focus:border-white/30 outline-none p-2 rounded resize-y placeholder:text-white/15 italic"
+                              />
+                              <input
+                                type="text"
+                                defaultValue={(block as any).attribution}
+                                placeholder="Attribution (optional)"
+                                onBlur={async (e) => {
+                                  const newBlocks = [...article.blocks];
+                                  (newBlocks[idx] as any).attribution = e.target.value.trim();
+                                  await updateArticle(article.id, { blocks: newBlocks });
+                                  fetchArticles();
+                                }}
+                                className="w-full text-[10px] text-white/50 bg-transparent border-b border-white/8 focus:border-white/30 outline-none py-1 placeholder:text-white/15"
+                              />
+                            </div>
+                          )}
+
+                          {block.type === "textOnly" && (
+                            <textarea
+                              defaultValue={(block as any).body}
+                              placeholder="Body text"
+                              rows={4}
+                              onBlur={async (e) => {
+                                const newBlocks = [...article.blocks];
+                                (newBlocks[idx] as any).body = e.target.value;
+                                await updateArticle(article.id, { blocks: newBlocks });
+                                fetchArticles();
+                              }}
+                              className="w-full text-[10px] text-white/50 bg-transparent border border-white/8 focus:border-white/30 outline-none p-2 rounded resize-y placeholder:text-white/15"
+                            />
+                          )}
+
+                          {block.type === "video" && (
+                            <div className="space-y-2">
+                              <input
+                                type="text"
+                                defaultValue={(block as any).src}
+                                placeholder="Cloudflare Stream ID or video URL"
+                                onBlur={async (e) => {
+                                  const newBlocks = [...article.blocks];
+                                  (newBlocks[idx] as any).src = e.target.value.trim();
+                                  await updateArticle(article.id, { blocks: newBlocks });
+                                  fetchArticles();
+                                }}
+                                className="w-full text-[10px] text-white/50 bg-transparent border-b border-white/8 focus:border-white/30 outline-none py-1 placeholder:text-white/15"
+                              />
+                              <input
+                                type="text"
+                                defaultValue={(block as any).caption}
+                                placeholder="Caption (optional)"
+                                onBlur={async (e) => {
+                                  const newBlocks = [...article.blocks];
+                                  (newBlocks[idx] as any).caption = e.target.value.trim();
+                                  await updateArticle(article.id, { blocks: newBlocks });
+                                  fetchArticles();
+                                }}
+                                className="w-full text-[10px] text-white/50 bg-transparent border-b border-white/8 focus:border-white/30 outline-none py-1 placeholder:text-white/15"
+                              />
+                              <p className="text-[8px] text-white/20">Stream ID (32文字の英数字) → iframe埋め込み / URL → videoタグ再生</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add block buttons */}
+                    <div className="flex gap-1 mt-3">
+                      {(["fullBleed", "textImage", "gallery", "quote", "textOnly", "video"] as BlockType[]).map((type) => (
+                        <button
+                          key={type}
+                          onClick={async () => {
+                            const blockId = `b_${Date.now()}`;
+                            const newBlock: any = { id: blockId, type };
+                            if (type === "fullBleed") { newBlock.image = ""; newBlock.heading = ""; }
+                            if (type === "textImage") { newBlock.body = ""; newBlock.image = ""; newBlock.side = "right"; }
+                            if (type === "gallery") { newBlock.images = []; }
+                            if (type === "quote") { newBlock.text = ""; newBlock.attribution = ""; }
+                            if (type === "textOnly") { newBlock.body = ""; }
+                            if (type === "video") { newBlock.src = ""; newBlock.caption = ""; }
+                            const newBlocks = [...article.blocks, newBlock];
+                            await updateArticle(article.id, { blocks: newBlocks });
+                            fetchArticles();
+                          }}
+                          className="px-2 py-1 text-[8px] tracking-[1px] border border-white/10 rounded text-white/25 hover:text-white/50 hover:border-white/25 cursor-pointer transition-colors"
+                        >
+                          + {type === "fullBleed" ? "HERO" : type === "textImage" ? "TEXT+IMG" : type === "textOnly" ? "TEXT" : type.toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Delete article */}
+                  <div className="pt-4 border-t border-white/5">
+                    <button
+                      onClick={async () => {
+                        if (!confirm(`Delete "${article.title}"?`)) return;
+                        await deleteArticle(article.id);
+                        fetchArticles();
+                      }}
+                      className="px-3 py-1 text-[9px] tracking-[1px] border border-red-900/30 rounded text-red-400/40 hover:text-red-400/70 cursor-pointer"
+                    >
+                      DELETE ARTICLE
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {articles.length === 0 && (
+        <p className="text-white/20 text-[12px] mt-2">
+          No articles yet. Create your first one above.
+        </p>
+      )}
 
       {/* Image Preview Modal */}
       {previewImg && (
