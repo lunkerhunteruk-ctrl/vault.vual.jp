@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { CREDIT_PACKS } from '@/lib/credits';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-04-22.dahlia',
-});
+// Lazy init so `next build` doesn't need STRIPE_SECRET_KEY at module-eval time.
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-04-22.dahlia' });
+  }
+  return _stripe;
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const stripe = getStripe();
     const { packSlug, userId, email } = await request.json();
 
     const pack = CREDIT_PACKS.find((p) => p.slug === packSlug);
