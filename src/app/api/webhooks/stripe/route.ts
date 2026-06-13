@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-04-22.dahlia',
-});
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+// Lazy init so `next build` doesn't need Stripe env at module-eval time.
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-04-22.dahlia' });
+  }
+  return _stripe;
+}
 
 // We need admin SDK for server-side Firestore writes
 // For now, use REST API approach with Firebase Admin
@@ -42,7 +45,8 @@ export async function POST(request: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+    event = getStripe().webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
